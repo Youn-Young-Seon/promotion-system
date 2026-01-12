@@ -7,6 +7,7 @@ import { RedisModule, KafkaModule } from '@app/common';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+            envFilePath: 'apps/coupon-service/.env',
         }),
         RedisModule,
         KafkaModule,
