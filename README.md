@@ -38,44 +38,40 @@
 
 ## 시작하기
 
-### 1. 인프라 실행
+### 1. 저장소 클론 및 설치
+
+```bash
+git clone <repository-url>
+cd promotion-system
+npm install  # 또는 pnpm install
+```
+
+> **✨ 자동 설정**: `npm install` 실행 시 자동으로:
+> - 모든 서비스의 Prisma Client 생성
+> - `.env.example` 파일을 `.env`로 복사
+
+### 2. 인프라 실행
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. 의존성 설치
+### 3. 데이터베이스 마이그레이션
 
 ```bash
-npm install
-```
-
-### 3. Prisma 마이그레이션
-
-```bash
-# Coupon Service
-cd apps/coupon-service
-npx prisma migrate dev
-npx prisma generate
-
-# Point Service
-cd ../point-service
-npx prisma migrate dev
-npx prisma generate
-
-# Time Sale Service
-cd ../timesale-service
-npx prisma migrate dev
-npx prisma generate
+npm run prisma:migrate:all
 ```
 
 ### 4. 서비스 실행
 
 ```bash
-# 개발 모드
+# 개발 모드 - 개별 서비스
 npm run start:dev coupon-service
 npm run start:dev point-service
 npm run start:dev timesale-service
+
+# 또는 모든 서비스 동시 실행
+npm run start:all
 ```
 
 ## 테스트

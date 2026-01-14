@@ -10,3 +10,15 @@ coverage/
 *.swo
 *~
 .prisma/
+
+# Prisma generated clients (now in src/)
+apps/*/src/generated/
+apps/*/prisma/generated/
+
+# Environment files
+.env
+apps/*/.env
+
+# Keep example files
+!.env.example
+!apps/*/.env.example
