@@ -32,6 +32,7 @@
 ## 아키텍처
 
 마이크로서비스 아키텍처로 구성:
+- **API Gateway** (포트: 4000) - 통합 진입점, 라우팅, Rate Limiting
 - **Coupon Service** (포트: 3001) - 쿠폰 정책 관리 및 발급/사용
 - **Point Service** (포트: 3002) - 적립금 조회/적립/사용
 - **Time Sale Service** (포트: 3003) - 타임세일 상품 관리 및 주문 처리
@@ -66,13 +67,25 @@ npm run prisma:migrate:all
 
 ```bash
 # 개발 모드 - 개별 서비스
+npm run start:gateway           # API Gateway만 실행
 npm run start:dev coupon-service
 npm run start:dev point-service
 npm run start:dev timesale-service
 
-# 또는 모든 서비스 동시 실행
+# 또는 모든 서비스 동시 실행 (Gateway 포함)
 npm run start:all
 ```
+
+### 5. API 접근
+
+**권장: API Gateway를 통한 접근**
+- API Gateway: http://localhost:4000/api/docs
+- 모든 요청은 Gateway를 통해 라우팅됩니다
+
+**직접 접근 (개발/디버깅용)**
+- Coupon Service: http://localhost:3001/api/docs
+- Point Service: http://localhost:3002/api/docs
+- Time Sale Service: http://localhost:3003/api/docs
 
 ## 테스트
 
@@ -92,6 +105,7 @@ npm run test:cov
 ```
 promotion-system/
 ├── apps/
+│   ├── api-gateway/            # API Gateway
 │   ├── coupon-service/
 │   ├── point-service/
 │   └── timesale-service/

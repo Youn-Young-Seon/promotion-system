@@ -10,6 +10,15 @@
     "monorepo": true,
     "root": "apps/coupon-service",
     "projects": {
+        "api-gateway": {
+            "type": "application",
+            "root": "apps/api-gateway",
+            "entryFile": "main",
+            "sourceRoot": "apps/api-gateway/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+            }
+        },
         "coupon-service": {
             "type": "application",
             "root": "apps/coupon-service",
