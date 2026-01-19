@@ -99,6 +99,15 @@ services:
     networks:
       - promotion-network
 
+# NOTE: gRPC Ports for Services (when running locally)
+# - Coupon Service: HTTP 3001, gRPC 5001
+# - Point Service: HTTP 3002, gRPC 5002
+# - TimeSale Service: HTTP 3003, gRPC 5003
+# - API Gateway: HTTP 4000 (gRPC client only)
+#
+# These ports are exposed when running services with `npm run start:dev`
+# For Docker deployment, add service containers with appropriate port mappings
+
 volumes:
   mysql-coupon-data:
   mysql-point-data:

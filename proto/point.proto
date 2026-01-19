@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package point;
+
+service PointService {
+  rpc GetBalance (GetBalanceRequest) returns (GetBalanceResponse);
+  rpc GetHistory (GetHistoryRequest) returns (GetHistoryResponse);
+  rpc AddPoint (AddPointRequest) returns (AddPointResponse);
+  rpc UsePoint (UsePointRequest) returns (UsePointResponse);
+}
+
+message GetBalanceRequest {
+  string userId = 1;
+}
+
+message GetBalanceResponse {
+  string userId = 1;
+  string balance = 2;
+  string version = 3;
+}
+
+message GetHistoryRequest {
+  string userId = 1;
+  int32 page = 2;
+  int32 limit = 3;
+}
+
+message PointHistory {
+  string id = 1;
+  string userId = 2;
+  string amount = 3;
+  string type = 4;
+  string description = 5;
+  string balanceSnapshot = 6;
+  string createdAt = 7;
+}
+
+message GetHistoryResponse {
+  repeated PointHistory items = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+message AddPointRequest {
+  string userId = 1;
+  string amount = 2;
+  string description = 3;
+}
+
+message AddPointResponse {
+  bool success = 1;
+  string balance = 2;
+  string message = 3;
+}
+
+message UsePointRequest {
+  string userId = 1;
+  string amount = 2;
+  string description = 3;
+}
+
+message UsePointResponse {
+  bool success = 1;
+  string balance = 2;
+  string message = 3;
+}

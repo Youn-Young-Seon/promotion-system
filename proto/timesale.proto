@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package timesale;
+
+service TimeSaleService {
+  rpc CreateTimeSale (CreateTimeSaleRequest) returns (CreateTimeSaleResponse);
+  rpc CreateOrder (CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetTimeSale (GetTimeSaleRequest) returns (GetTimeSaleResponse);
+}
+
+message CreateTimeSaleRequest {
+  string productId = 1;
+  string quantity = 2;
+  string discountPrice = 3;
+  string startAt = 4;
+  string endAt = 5;
+}
+
+message CreateTimeSaleResponse {
+  string id = 1;
+  string productId = 2;
+  string quantity = 3;
+  string remainingQuantity = 4;
+  string discountPrice = 5;
+  string startAt = 6;
+  string endAt = 7;
+  string status = 8;
+}
+
+message CreateOrderRequest {
+  string timeSaleId = 1;
+  string userId = 2;
+  string quantity = 3;
+  string strategy = 4;
+}
+
+message CreateOrderResponse {
+  string id = 1;
+  string userId = 2;
+  string timeSaleId = 3;
+  string quantity = 4;
+  string status = 5;
+  string message = 6;
+}
+
+message GetTimeSaleRequest {
+  string id = 1;
+}
+
+message TimeSale {
+  string id = 1;
+  string productId = 2;
+  string quantity = 3;
+  string remainingQuantity = 4;
+  string discountPrice = 5;
+  string startAt = 6;
+  string endAt = 7;
+  string status = 8;
+}
+
+message GetTimeSaleResponse {
+  TimeSale timeSale = 1;
+}

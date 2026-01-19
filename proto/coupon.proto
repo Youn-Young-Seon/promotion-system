@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package coupon;
+
+service CouponService {
+  rpc CreatePolicy (CreatePolicyRequest) returns (CreatePolicyResponse);
+  rpc IssueCoupon (IssueCouponRequest) returns (IssueCouponResponse);
+  rpc UseCoupon (UseCouponRequest) returns (UseCouponResponse);
+  rpc GetUserCoupons (GetUserCouponsRequest) returns (GetUserCouponsResponse);
+}
+
+message CreatePolicyRequest {
+  string title = 1;
+  string description = 2;
+  int32 totalQuantity = 3;
+  string startTime = 4;
+  string endTime = 5;
+  string discountType = 6;
+  int32 discountValue = 7;
+  int32 minimumOrderAmount = 8;
+  int32 maximumDiscountAmount = 9;
+}
+
+message CreatePolicyResponse {
+  string id = 1;
+  string title = 2;
+  int32 totalQuantity = 3;
+  string startTime = 4;
+  string endTime = 5;
+  string discountType = 6;
+  int32 discountValue = 7;
+  int32 minimumOrderAmount = 8;
+  int32 maximumDiscountAmount = 9;
+}
+
+message IssueCouponRequest {
+  string userId = 1;
+  string couponPolicyId = 2;
+  string strategy = 3;
+}
+
+message IssueCouponResponse {
+  string id = 1;
+  string couponPolicyId = 2;
+  string userId = 3;
+  string status = 4;
+  string expirationTime = 5;
+  string issuedAt = 6;
+}
+
+message UseCouponRequest {
+  string couponId = 1;
+  string orderId = 2;
+}
+
+message UseCouponResponse {
+  bool success = 1;
+  string message = 2;
+  int32 discountAmount = 3;
+}
+
+message GetUserCouponsRequest {
+  string userId = 1;
+}
+
+message Coupon {
+  string id = 1;
+  string couponPolicyId = 2;
+  string userId = 3;
+  string orderId = 4;
+  string status = 5;
+  string expirationTime = 6;
+  string issuedAt = 7;
+}
+
+message GetUserCouponsResponse {
+  repeated Coupon coupons = 1;
+}

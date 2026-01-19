@@ -1,74 +1,77 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
+import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
+
+// gRPC Service Interfaces
+interface CouponService {
+    createPolicy(data: any): any;
+    issueCoupon(data: any): any;
+    useCoupon(data: any): any;
+    getUserCoupons(data: any): any;
+}
+
+interface PointService {
+    getBalance(data: any): any;
+    getHistory(data: any): any;
+    addPoint(data: any): any;
+    usePoint(data: any): any;
+}
+
+interface TimeSaleService {
+    createTimeSale(data: any): any;
+    createOrder(data: any): any;
+    getTimeSale(data: any): any;
+}
 
 @Injectable()
-export class GatewayService {
+export class GatewayService implements OnModuleInit {
     private readonly logger = new Logger(GatewayService.name);
+    private couponService: CouponService;
+    private pointService: PointService;
+    private timeSaleService: TimeSaleService;
 
-    private readonly serviceUrls = {
-        coupon: process.env.COUPON_SERVICE_URL || 'http://localhost:3001',
-        point: process.env.POINT_SERVICE_URL || 'http://localhost:3002',
-        timesale: process.env.TIMESALE_SERVICE_URL || 'http://localhost:3003',
-    };
+    constructor(
+        @Inject('COUPON_SERVICE') private couponClient: ClientGrpc,
+        @Inject('POINT_SERVICE') private pointClient: ClientGrpc,
+        @Inject('TIMESALE_SERVICE') private timeSaleClient: ClientGrpc,
+    ) { }
 
-    async proxyRequest(req: any, res: any, service: 'coupon' | 'point' | 'timesale') {
-        const targetUrl = `${this.serviceUrls[service]}${req.url}`;
+    onModuleInit() {
+        this.couponService = this.couponClient.getService<CouponService>('CouponService');
+        this.pointService = this.pointClient.getService<PointService>('PointService');
+        this.timeSaleService = this.timeSaleClient.getService<TimeSaleService>('TimeSaleService');
+    }
 
-        this.logger.debug(`Proxying ${req.method} ${req.url} -> ${targetUrl}`);
-
+    async callCouponService(method: string, data: any) {
         try {
-            const headers: HeadersInit = {
-                'Content-Type': 'application/json',
-            };
-
-            // 원본 요청의 헤더 복사 (특정 헤더 제외)
-            const excludeHeaders = ['host', 'connection', 'content-length'];
-            Object.keys(req.headers).forEach((key) => {
-                if (!excludeHeaders.includes(key.toLowerCase())) {
-                    const value = req.headers[key];
-                    if (typeof value === 'string') {
-                        headers[key] = value;
-                    } else if (Array.isArray(value)) {
-                        headers[key] = value[0];
-                    }
-                }
-            });
-
-            const options: RequestInit = {
-                method: req.method,
-                headers,
-            };
-
-            // GET, HEAD 요청이 아닌 경우 body 추가
-            if (req.method !== 'GET' && req.method !== 'HEAD') {
-                options.body = JSON.stringify(req.body);
-            }
-
-            const response = await fetch(targetUrl, options);
-
-            // 응답 헤더 복사
-            response.headers.forEach((value, key) => {
-                res.setHeader(key, value);
-            });
-
-            // 응답 상태 코드 설정
-            res.status(response.status);
-
-            // 응답 본문 전달
-            const contentType = response.headers.get('content-type');
-            if (contentType?.includes('application/json')) {
-                const data = await response.json();
-                res.json(data);
-            } else {
-                const text = await response.text();
-                res.send(text);
-            }
+            this.logger.debug(`Calling Coupon Service: ${method}`);
+            const result = await firstValueFrom(this.couponService[method](data));
+            return result;
         } catch (error) {
-            this.logger.error(`Proxy error for ${service}: ${error.message}`, error.stack);
-            res.status(502).json({
-                statusCode: 502,
-                message: `Failed to connect to ${service} service`,
-                error: 'Bad Gateway',
-            });
+            this.logger.error(`Coupon Service error: ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    async callPointService(method: string, data: any) {
+        try {
+            this.logger.debug(`Calling Point Service: ${method}`);
+            const result = await firstValueFrom(this.pointService[method](data));
+            return result;
+        } catch (error) {
+            this.logger.error(`Point Service error: ${error.message}`, error.stack);
+            throw error;
+        }
+    }
+
+    async callTimeSaleService(method: string, data: any) {
+        try {
+            this.logger.debug(`Calling TimeSale Service: ${method}`);
+            const result = await firstValueFrom(this.timeSaleService[method](data));
+            return result;
+        } catch (error) {
+            this.logger.error(`TimeSale Service error: ${error.message}`, error.stack);
+            throw error;
         }
     }
 }
