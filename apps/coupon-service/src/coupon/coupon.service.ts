@@ -1,10 +1,12 @@
-import { Injectable, OnModuleInit, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, OnModuleInit, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService, KafkaService } from '@app/common';
 import { CreateCouponPolicyDto, IssueCouponDto } from './dto';
 
 @Injectable()
 export class CouponService implements OnModuleInit {
+    private readonly logger = new Logger(CouponService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly redis: RedisService,
@@ -269,7 +271,7 @@ export class CouponService implements OnModuleInit {
             const lockAcquired = await this.redis.acquireLock(lockKey, 5000);
 
             if (!lockAcquired) {
-                console.error('Failed to acquire lock for coupon issue');
+                this.logger.error('Failed to acquire lock for coupon issue');
                 return;
             }
 
@@ -279,7 +281,7 @@ export class CouponService implements OnModuleInit {
                 });
 
                 if (!policy) {
-                    console.error('Coupon policy not found');
+                    this.logger.error('Coupon policy not found');
                     return;
                 }
 
@@ -298,7 +300,7 @@ export class CouponService implements OnModuleInit {
                 }
 
                 if (currentCount >= policy.totalQuantity) {
-                    console.error('Coupon sold out');
+                    this.logger.warn('Coupon sold out');
                     return;
                 }
 
@@ -316,12 +318,12 @@ export class CouponService implements OnModuleInit {
 
                 await this.redis.incr(redisKey);
 
-                console.log(`Coupon issued successfully: policyId=${policyId}, userId=${userId}`);
+                this.logger.log(`Coupon issued successfully: policyId=${policyId}, userId=${userId}`);
             } finally {
                 await this.redis.releaseLock(lockKey);
             }
         } catch (error) {
-            console.error('Error processing coupon issue:', error);
+            this.logger.error('Error processing coupon issue:', error.stack || error);
         }
     }
 

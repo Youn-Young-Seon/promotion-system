@@ -1,10 +1,12 @@
-import { Injectable, OnModuleInit, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, OnModuleInit, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService, KafkaService } from '@app/common';
 import { CreateTimeSaleDto, CreateOrderDto } from './dto';
 
 @Injectable()
 export class TimeSaleService implements OnModuleInit {
+    private readonly logger = new Logger(TimeSaleService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly redis: RedisService,
@@ -181,7 +183,7 @@ export class TimeSaleService implements OnModuleInit {
         });
 
         this.updateDbStock(timeSaleId, quantity).catch((err) => {
-            console.error('DB 재고 업데이트 실패:', err);
+            this.logger.error('DB 재고 업데이트 실패:', err);
         });
 
         return {
@@ -246,7 +248,7 @@ export class TimeSaleService implements OnModuleInit {
             if (remaining < 0) {
                 // 재고 부족 - 롤백
                 await this.redis.getClient().incrBy(redisKey, Number(quantity));
-                console.error(`Order failed: insufficient stock for timeSaleId=${timeSaleId}`);
+                this.logger.warn(`Order failed: insufficient stock for timeSaleId=${timeSaleId}`);
 
                 // 실패 알림 (실제로는 별도 토픽으로 전송)
                 await this.kafka.sendMessage('timesale-order-failures', {
@@ -277,12 +279,12 @@ export class TimeSaleService implements OnModuleInit {
 
             // 비동기 DB 재고 업데이트
             this.updateDbStock(timeSaleId, quantity).catch((err) => {
-                console.error('DB 재고 업데이트 실패:', err);
+                this.logger.error('DB 재고 업데이트 실패:', err);
             });
 
-            console.log(`Order processed successfully: orderId=${order.id}, timeSaleId=${timeSaleId}`);
+            this.logger.log(`Order processed successfully: orderId=${order.id}, timeSaleId=${timeSaleId}`);
         } catch (error) {
-            console.error('Error processing order:', error);
+            this.logger.error('Error processing order:', error.stack || error);
         }
     }
 
