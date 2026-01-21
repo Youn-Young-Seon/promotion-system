@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { CouponService } from './coupon.service';
-import { DiscountType } from './dto';
+import { DiscountType, isCouponIssued, isCouponPending } from './dto';
 
 interface CreatePolicyRequest {
     title: string;
@@ -72,8 +72,9 @@ export class CouponGrpcController {
 
         const result = await this.couponService.issueCoupon(dto, data.strategy || 'v1');
 
-        // V3 returns different structure (PENDING status)
-        if ('message' in result && result.status === 'PENDING') {
+        // Use type guard for discriminated union
+        if (isCouponPending(result)) {
+            // V3: Pending response
             return {
                 id: '',
                 couponPolicyId: result.policyId,
@@ -84,7 +85,7 @@ export class CouponGrpcController {
             };
         }
 
-        // V1 and V2 return coupon object
+        // V1 and V2: Coupon issued response (TypeScript knows this is CouponIssuedResponse)
         return {
             id: result.id,
             couponPolicyId: result.couponPolicyId,

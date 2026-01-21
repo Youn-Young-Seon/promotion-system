@@ -1,17 +1,37 @@
 import { Injectable, OnModuleInit, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService, KafkaService } from '@app/common';
-import { CreateCouponPolicyDto, IssueCouponDto } from './dto';
+import { CreateCouponPolicyDto, IssueCouponDto, IssueCouponResponse } from './dto';
+import { IssueCouponStrategy, StrategyType, IssueCouponV1Strategy, IssueCouponV2Strategy, IssueCouponV3Strategy } from './strategies';
 
+/**
+ * Coupon Service
+ *
+ * Uses Strategy Pattern for coupon issuance:
+ * - V1: Database transactions (strong consistency)
+ * - V2: Redis distributed locks (high performance)
+ * - V3: Kafka async processing (ultra high throughput)
+ */
 @Injectable()
 export class CouponService implements OnModuleInit {
     private readonly logger = new Logger(CouponService.name);
+    private readonly strategies: Map<StrategyType, IssueCouponStrategy>;
 
     constructor(
         private readonly prisma: PrismaService,
         private readonly redis: RedisService,
         private readonly kafka: KafkaService,
-    ) { }
+        private readonly issueCouponV1Strategy: IssueCouponV1Strategy,
+        private readonly issueCouponV2Strategy: IssueCouponV2Strategy,
+        private readonly issueCouponV3Strategy: IssueCouponV3Strategy,
+    ) {
+        // Initialize strategy map
+        this.strategies = new Map<StrategyType, IssueCouponStrategy>([
+            ['v1', this.issueCouponV1Strategy],
+            ['v2', this.issueCouponV2Strategy],
+            ['v3', this.issueCouponV3Strategy],
+        ]);
+    }
 
     async onModuleInit() {
         // Kafka Consumer 시작 - 쿠폰 발급 요청 처리
@@ -55,213 +75,34 @@ export class CouponService implements OnModuleInit {
         };
     }
 
-    async issueCoupon(dto: IssueCouponDto, strategy: string = 'v1') {
+    /**
+     * Issues a coupon using the specified strategy
+     *
+     * Strategy Pattern: Delegates coupon issuance to the appropriate strategy
+     *
+     * @param dto - Coupon issuance data
+     * @param strategyType - Strategy to use (v1, v2, v3)
+     * @returns Coupon response (issued or pending)
+     */
+    async issueCoupon(dto: IssueCouponDto, strategyType: string = 'v1'): Promise<IssueCouponResponse> {
         const policyId = BigInt(dto.policyId);
         const userId = BigInt(dto.userId);
 
-        switch (strategy) {
-            case 'v3':
-                return this.issueCouponV3(policyId, userId);
-            case 'v2':
-                return this.issueCouponV2(policyId, userId);
-            case 'v1':
-            default:
-                return this.issueCouponV1(policyId, userId);
-        }
+        // Get strategy from map (defaults to v1 if invalid)
+        const strategy = this.strategies.get(strategyType as StrategyType) || this.strategies.get('v1')!;
+
+        this.logger.log(`Issuing coupon with strategy: ${strategyType}`);
+
+        // Delegate to strategy
+        return strategy.execute(policyId, userId);
     }
 
-    // V1: DB 기반 쿠폰 발급 (트랜잭션)
-    private async issueCouponV1(policyId: bigint, userId: bigint) {
-        return this.prisma.$transaction(async (tx) => {
-            const policy = await tx.couponPolicy.findUnique({
-                where: { id: policyId },
-            });
-
-            if (!policy) {
-                throw new NotFoundException('쿠폰 정책을 찾을 수 없습니다');
-            }
-
-            const now = new Date();
-            if (now < policy.startTime || now > policy.endTime) {
-                throw new BadRequestException('쿠폰 발급 가능 시간이 아닙니다');
-            }
-
-            const issuedCount = await tx.coupon.count({
-                where: { couponPolicyId: policyId },
-            });
-
-            if (issuedCount >= policy.totalQuantity) {
-                throw new BadRequestException('쿠폰이 모두 소진되었습니다');
-            }
-
-            const existingCoupon = await tx.coupon.findFirst({
-                where: {
-                    couponPolicyId: policyId,
-                    userId: userId,
-                },
-            });
-
-            if (existingCoupon) {
-                throw new BadRequestException('이미 발급받은 쿠폰입니다');
-            }
-
-            const expirationTime = new Date(policy.endTime);
-            expirationTime.setDate(expirationTime.getDate() + 30);
-
-            const coupon = await tx.coupon.create({
-                data: {
-                    couponPolicyId: policyId,
-                    userId: userId,
-                    status: 'AVAILABLE',
-                    expirationTime,
-                },
-            });
-
-            return {
-                id: coupon.id.toString(),
-                couponPolicyId: coupon.couponPolicyId.toString(),
-                userId: coupon.userId.toString(),
-                status: coupon.status,
-                expirationTime: coupon.expirationTime,
-                issuedAt: coupon.issuedAt,
-            };
-        });
-    }
-
-    // V2: Redis 분산 락 기반 쿠폰 발급
-    private async issueCouponV2(policyId: bigint, userId: bigint) {
-        const lockKey = `coupon:policy:${policyId}`;
-        const maxRetries = 3;
-        let retries = 0;
-
-        while (retries < maxRetries) {
-            const lockAcquired = await this.redis.acquireLock(lockKey, 5000);
-
-            if (!lockAcquired) {
-                retries++;
-                await new Promise((resolve) => setTimeout(resolve, 100));
-                continue;
-            }
-
-            try {
-                const policy = await this.prisma.couponPolicy.findUnique({
-                    where: { id: policyId },
-                });
-
-                if (!policy) {
-                    throw new NotFoundException('쿠폰 정책을 찾을 수 없습니다');
-                }
-
-                const now = new Date();
-                if (now < policy.startTime || now > policy.endTime) {
-                    throw new BadRequestException('쿠폰 발급 가능 시간이 아닙니다');
-                }
-
-                const redisKey = `coupon:issued:${policyId}`;
-                const issuedCount = await this.redis.get(redisKey);
-
-                let currentCount = 0;
-                if (issuedCount) {
-                    currentCount = parseInt(issuedCount);
-                } else {
-                    const dbCount = await this.prisma.coupon.count({
-                        where: { couponPolicyId: policyId },
-                    });
-                    currentCount = dbCount;
-                    await this.redis.set(redisKey, dbCount.toString());
-                }
-
-                if (currentCount >= policy.totalQuantity) {
-                    throw new BadRequestException('쿠폰이 모두 소진되었습니다');
-                }
-
-                const existingCoupon = await this.prisma.coupon.findFirst({
-                    where: {
-                        couponPolicyId: policyId,
-                        userId: userId,
-                    },
-                });
-
-                if (existingCoupon) {
-                    throw new BadRequestException('이미 발급받은 쿠폰입니다');
-                }
-
-                const expirationTime = new Date(policy.endTime);
-                expirationTime.setDate(expirationTime.getDate() + 30);
-
-                const coupon = await this.prisma.coupon.create({
-                    data: {
-                        couponPolicyId: policyId,
-                        userId: userId,
-                        status: 'AVAILABLE',
-                        expirationTime,
-                    },
-                });
-
-                await this.redis.incr(redisKey);
-
-                return {
-                    id: coupon.id.toString(),
-                    couponPolicyId: coupon.couponPolicyId.toString(),
-                    userId: coupon.userId.toString(),
-                    status: coupon.status,
-                    expirationTime: coupon.expirationTime,
-                    issuedAt: coupon.issuedAt,
-                };
-            } finally {
-                await this.redis.releaseLock(lockKey);
-            }
-        }
-
-        throw new BadRequestException('쿠폰 발급에 실패했습니다. 잠시 후 다시 시도해주세요.');
-    }
-
-    // V3: Kafka 비동기 쿠폰 발급
-    private async issueCouponV3(policyId: bigint, userId: bigint) {
-        // 1. 기본 검증 (빠른 실패)
-        const policy = await this.prisma.couponPolicy.findUnique({
-            where: { id: policyId },
-        });
-
-        if (!policy) {
-            throw new NotFoundException('쿠폰 정책을 찾을 수 없습니다');
-        }
-
-        const now = new Date();
-        if (now < policy.startTime || now > policy.endTime) {
-            throw new BadRequestException('쿠폰 발급 가능 시간이 아닙니다');
-        }
-
-        // 2. 중복 발급 확인
-        const existingCoupon = await this.prisma.coupon.findFirst({
-            where: {
-                couponPolicyId: policyId,
-                userId: userId,
-            },
-        });
-
-        if (existingCoupon) {
-            throw new BadRequestException('이미 발급받은 쿠폰입니다');
-        }
-
-        // 3. Kafka로 발급 요청 전송
-        await this.kafka.sendMessage('coupon-issue-requests', {
-            policyId: policyId.toString(),
-            userId: userId.toString(),
-            requestedAt: new Date().toISOString(),
-        });
-
-        // 4. 즉시 응답 (비동기 처리)
-        return {
-            status: 'PENDING',
-            message: '쿠폰 발급 요청이 접수되었습니다. 잠시 후 확인해주세요.',
-            policyId: policyId.toString(),
-            userId: userId.toString(),
-        };
-    }
-
-    // Kafka Consumer에서 호출되는 실제 발급 처리
-    private async processCouponIssue(message: any) {
+    /**
+     * Kafka Consumer handler for V3 async coupon issuance
+     *
+     * @param message - Kafka message containing issuance data
+     */
+    private async processCouponIssue(message: any): Promise<void> {
         const policyId = BigInt(message.policyId);
         const userId = BigInt(message.userId);
 
@@ -327,7 +168,6 @@ export class CouponService implements OnModuleInit {
         }
     }
 
-    // 쿠폰 사용
     async useCoupon(couponId: bigint, orderId: bigint) {
         return this.prisma.$transaction(async (tx) => {
             const coupon = await tx.coupon.findUnique({

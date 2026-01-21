@@ -1,15 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    const logger = new Logger('Bootstrap');
 
     app.useGlobalPipes(
         new ValidationPipe({
             whitelist: true,
             transform: true,
+            forbidNonWhitelisted: true,
         }),
     );
 
@@ -32,11 +34,11 @@ async function bootstrap() {
     const port = process.env.GATEWAY_PORT || 4000;
     await app.listen(port);
 
-    console.log(`🚀 API Gateway is running on: http://localhost:${port}`);
-    console.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
-    console.log(`🔗 Proxying to:`);
-    console.log(`   - Coupon Service: http://localhost:3001`);
-    console.log(`   - Point Service: http://localhost:3002`);
-    console.log(`   - Time Sale Service: http://localhost:3003`);
+    logger.log(`🚀 API Gateway is running on: http://localhost:${port}`);
+    logger.log(`📚 Swagger docs available at: http://localhost:${port}/api/docs`);
+    logger.log(`🔗 Proxying to:`);
+    logger.log(`   - Coupon Service: http://localhost:3001`);
+    logger.log(`   - Point Service: http://localhost:3002`);
+    logger.log(`   - Time Sale Service: http://localhost:3003`);
 }
 bootstrap();

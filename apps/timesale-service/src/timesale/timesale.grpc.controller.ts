@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { TimeSaleService } from './timesale.service';
+import { isOrderCreated, isOrderQueued } from './dto';
 
 interface CreateTimeSaleRequest {
     productId: string;
@@ -62,8 +63,9 @@ export class TimeSaleGrpcController {
             data.strategy || 'v1'
         );
 
-        // V3 returns different structure (QUEUED status)
-        if ('status' in result && result.status === 'QUEUED') {
+        // Use type guard for discriminated union
+        if (isOrderQueued(result)) {
+            // V3: Queued response
             return {
                 id: '',
                 userId: result.userId,
@@ -74,7 +76,7 @@ export class TimeSaleGrpcController {
             };
         }
 
-        // V1 and V2 return order object
+        // V1 and V2: Order created response (TypeScript knows this is OrderCreatedResponse)
         return {
             id: result.id,
             userId: result.userId,
