@@ -7,7 +7,6 @@ import { RedisModule } from '@app/common';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: 'apps/point-service/.env',
         }),
         RedisModule,
         PointModule,

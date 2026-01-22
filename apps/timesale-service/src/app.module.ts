@@ -7,7 +7,6 @@ import { RedisModule, KafkaModule } from '@app/common';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: 'apps/timesale-service/.env',
         }),
         RedisModule,
         KafkaModule,

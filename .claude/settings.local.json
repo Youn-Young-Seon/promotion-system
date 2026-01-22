@@ -4,7 +4,20 @@
       "Bash(nest build:*)",
       "Bash(npx prisma generate:*)",
       "Bash(npm run build:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx jest --config ./test/jest-e2e.json)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(if not exist .env copy .env.example .env)",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(node test/performance-test.js:*)",
+      "Bash(curl:*)",
+      "Bash(npm run prisma:migrate:all:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npm run prisma:generate:all:*)",
+      "Bash(timeout 10 npm run start:dev:*)"
     ]
   }
 }

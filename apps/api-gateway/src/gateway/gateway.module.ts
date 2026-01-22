@@ -16,7 +16,7 @@ import { join } from 'path';
                 transport: Transport.GRPC,
                 options: {
                     package: 'coupon',
-                    protoPath: join(__dirname, '../../../proto/coupon.proto'),
+                    protoPath: join(process.cwd(), 'proto/coupon.proto'),
                     url: process.env.COUPON_GRPC_URL || 'localhost:5001',
                 },
             },
@@ -25,7 +25,7 @@ import { join } from 'path';
                 transport: Transport.GRPC,
                 options: {
                     package: 'point',
-                    protoPath: join(__dirname, '../../../proto/point.proto'),
+                    protoPath: join(process.cwd(), 'proto/point.proto'),
                     url: process.env.POINT_GRPC_URL || 'localhost:5002',
                 },
             },
@@ -34,7 +34,7 @@ import { join } from 'path';
                 transport: Transport.GRPC,
                 options: {
                     package: 'timesale',
-                    protoPath: join(__dirname, '../../../proto/timesale.proto'),
+                    protoPath: join(process.cwd(), 'proto/timesale.proto'),
                     url: process.env.TIMESALE_GRPC_URL || 'localhost:5003',
                 },
             },
