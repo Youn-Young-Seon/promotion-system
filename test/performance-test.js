@@ -22,23 +22,22 @@ const TEST_CONFIG = {
     coupon: {
         endpoint: '/api/coupons/issue',
         payload: (userId) => ({
-            policyId: '4',
-            userId: `perf-test-user-${userId}`,
+            policyId: '6',
+            userId: String(userId),
         }),
     },
     point: {
         endpoint: '/api/points/add',
         payload: (userId) => ({
-            userId: `perf-test-user-${userId}`,
+            userId: String(userId),
             amount: 100,
-            reason: 'Performance test',
+            description: 'Performance test',
         }),
     },
     timesale: {
-        endpoint: '/api/timesales/order',
+        endpoint: '/api/timesales/1/orders',
         payload: (userId) => ({
-            productId: '1',
-            userId: `perf-test-user-${userId}`,
+            userId: String(userId),
             quantity: 1,
         }),
     },
@@ -74,7 +73,7 @@ async function sendRequest(service, strategy, userId) {
             success: false,
             duration: endTime - startTime,
             status: error.response?.status || 0,
-            error: error.response?.data?.message || error.message,
+            error: error.response?.data?.message || error.response?.data || error.message,
         };
     }
 }
@@ -96,12 +95,13 @@ async function runConcurrentRequests(service, strategy, totalRequests, concurren
     let completed = 0;
 
     // 요청을 배치로 나누어 실행
+    const baseUserId = Date.now(); // Use timestamp as base to avoid duplicates
     for (let i = 0; i < totalRequests; i += concurrency) {
         const batch = [];
         const batchSize = Math.min(concurrency, totalRequests - i);
 
         for (let j = 0; j < batchSize; j++) {
-            const userId = i + j + 1;
+            const userId = baseUserId + i + j;
             batch.push(sendRequest(service, strategy, userId));
         }
 

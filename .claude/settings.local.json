@@ -17,7 +17,13 @@
       "Bash(npx prisma migrate dev:*)",
       "Bash(npx prisma migrate:*)",
       "Bash(npm run prisma:generate:all:*)",
-      "Bash(timeout 10 npm run start:dev:*)"
+      "Bash(timeout 10 npm run start:dev:*)",
+      "Bash(pnpm run perf:coupon:*)",
+      "Bash(docker ps:*)",
+      "Bash(timeout /t 3)",
+      "Bash(docker exec:*)",
+      "Bash(pnpm run perf:point:*)",
+      "Bash(pnpm run perf:timesale:*)"
     ]
   }
 }

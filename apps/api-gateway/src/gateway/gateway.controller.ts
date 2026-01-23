@@ -19,7 +19,8 @@ export class GatewayController {
     @ApiOperation({ summary: '쿠폰 발급' })
     async issueCoupon(@Body() body: any, @Query('strategy') strategy?: string) {
         return this.gatewayService.callCouponService('issueCoupon', {
-            ...body,
+            userId: body.userId,
+            couponPolicyId: body.policyId,
             strategy: strategy || 'v1',
         });
     }
