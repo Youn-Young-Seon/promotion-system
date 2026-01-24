@@ -1,55 +1,21 @@
-# Docker 이미지 빌드 스크립트 (PowerShell)
+# PowerShell script to build all service Docker images
 
-param(
-    [string]$Version = "latest",
-    [string]$Registry = "promotion-system"
-)
+Write-Host "Building Docker images for all services..." -ForegroundColor Green
 
-Write-Host "🚀 Building Docker images for Promotion System..." -ForegroundColor Green
-Write-Host "Version: $Version"
-Write-Host "Registry: $Registry"
-Write-Host ""
+# Build API Gateway
+Write-Host "Building api-gateway..." -ForegroundColor Yellow
+docker build -f apps/api-gateway/Dockerfile -t promotion-system/api-gateway:latest .
 
-# Coupon Service 빌드
-Write-Host "📦 Building Coupon Service..." -ForegroundColor Cyan
-docker build -t "${Registry}/coupon-service:${Version}" `
-  -f apps/coupon-service/Dockerfile .
+# Build Coupon Service
+Write-Host "Building coupon-service..." -ForegroundColor Yellow
+docker build -f apps/coupon-service/Dockerfile -t promotion-system/coupon-service:latest .
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to build Coupon Service" -ForegroundColor Red
-    exit 1
-}
+# Build Point Service
+Write-Host "Building point-service..." -ForegroundColor Yellow
+docker build -f apps/point-service/Dockerfile -t promotion-system/point-service:latest .
 
-# Point Service 빌드
-Write-Host ""
-Write-Host "📦 Building Point Service..." -ForegroundColor Cyan
-docker build -t "${Registry}/point-service:${Version}" `
-  -f apps/point-service/Dockerfile .
+# Build TimeSale Service
+Write-Host "Building timesale-service..." -ForegroundColor Yellow
+docker build -f apps/timesale-service/Dockerfile -t promotion-system/timesale-service:latest .
 
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to build Point Service" -ForegroundColor Red
-    exit 1
-}
-
-# Time Sale Service 빌드
-Write-Host ""
-Write-Host "📦 Building Time Sale Service..." -ForegroundColor Cyan
-docker build -t "${Registry}/timesale-service:${Version}" `
-  -f apps/timesale-service/Dockerfile .
-
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to build Time Sale Service" -ForegroundColor Red
-    exit 1
-}
-
-Write-Host ""
-Write-Host "✅ All images built successfully!" -ForegroundColor Green
-Write-Host ""
-Write-Host "Images:" -ForegroundColor Yellow
-docker images | Select-String $Registry
-
-Write-Host ""
-Write-Host "To push to registry:" -ForegroundColor Yellow
-Write-Host "  docker push ${Registry}/coupon-service:${Version}"
-Write-Host "  docker push ${Registry}/point-service:${Version}"
-Write-Host "  docker push ${Registry}/timesale-service:${Version}"
+Write-Host "All images built successfully!" -ForegroundColor Green

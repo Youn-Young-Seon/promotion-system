@@ -1,29 +1,50 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "declaration": true,
-        "removeComments": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "allowSyntheticDefaultImports": true,
-        "target": "ES2021",
-        "sourceMap": true,
-        "outDir": "./dist",
-        "baseUrl": "./",
-        "incremental": true,
-        "skipLibCheck": true,
-        "strictNullChecks": false,
-        "noImplicitAny": false,
-        "strictBindCallApply": false,
-        "forceConsistentCasingInFileNames": false,
-        "noFallthroughCasesInSwitch": false,
-        "paths": {
-            "@app/common": [
-                "libs/common/src"
-            ],
-            "@app/common/*": [
-                "libs/common/src/*"
-            ]
-        }
+  "compilerOptions": {
+    // Strict Mode - 모든 strict 옵션 활성화
+    "strict": true,
+
+    // 추가 엄격한 검사 옵션 (strict에 포함되지 않음)
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // 추가 권장 옵션
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    // ES 버전 및 모듈
+    "module": "commonjs",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+
+    // 데코레이터 및 메타데이터
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
+    // 출력 설정
+    "outDir": "./dist",
+    "rootDir": "./",
+    "sourceMap": true,
+    "declaration": true,
+    "removeComments": true,
+    "incremental": true,
+    "skipLibCheck": true,
+
+    // 모듈 해석
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+
+    // 경로 별칭
+    "baseUrl": "./",
+    "paths": {
+      "@common/*": ["libs/common/src/*"]
     }
+  },
+  "include": ["apps/**/*", "libs/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*test.ts"]
 }

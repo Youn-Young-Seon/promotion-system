@@ -1,44 +1,46 @@
-# Coupon Service Dockerfile
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# 의존성 복사 및 설치
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
-RUN npm ci
+# Install pnpm
+RUN npm install -g pnpm
 
-# 소스 코드 복사
-COPY libs/ ./libs/
-COPY apps/coupon-service/ ./apps/coupon-service/
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+COPY apps/coupon-service/package.json ./apps/coupon-service/
 
-# Prisma 생성
-WORKDIR /app/apps/coupon-service
-RUN npx prisma generate
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-# 빌드
+# Copy source code
+COPY . .
+
+# Generate Prisma Client
+RUN cd apps/coupon-service && pnpm prisma generate
+
+# Build application
+RUN pnpm build coupon-service
+
+# Production stage
+FROM node:20-alpine
+
 WORKDIR /app
-RUN npm run build coupon-service
 
-# Production 이미지
-FROM node:18-alpine
+RUN npm install -g pnpm
 
-WORKDIR /app
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-# 프로덕션 의존성만 설치
-COPY package*.json ./
-RUN npm ci --only=production
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
 
-# 빌드된 파일 복사
+# Copy built application and Prisma schema
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/apps/coupon-service/prisma ./apps/coupon-service/prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/apps/coupon-service/prisma ./prisma
 
-# 환경 변수
-ENV NODE_ENV=production
-ENV PORT=3001
+# Generate Prisma Client for production
+RUN cd /app && pnpm prisma generate --schema=./prisma/schema.prisma
 
 EXPOSE 3001
 
-CMD ["node", "dist/apps/coupon-service/main"]
+CMD ["node", "dist/apps/coupon-service/main.js"]

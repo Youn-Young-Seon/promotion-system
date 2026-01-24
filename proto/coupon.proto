@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package coupon;
+
+service CouponService {
+  rpc CreateCouponPolicy (CreateCouponPolicyRequest) returns (CouponPolicyResponse);
+  rpc GetCouponPolicy (GetCouponPolicyRequest) returns (CouponPolicyResponse);
+  rpc ListCouponPolicies (ListCouponPoliciesRequest) returns (ListCouponPoliciesResponse);
+  rpc IssueCoupon (IssueCouponRequest) returns (CouponResponse);
+  rpc UseCoupon (UseCouponRequest) returns (CouponResponse);
+  rpc CancelCoupon (CancelCouponRequest) returns (CouponResponse);
+  rpc GetUserCoupons (GetUserCouponsRequest) returns (GetUserCouponsResponse);
+}
+
+message CreateCouponPolicyRequest {
+  string title = 1;
+  string description = 2;
+  int32 total_quantity = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string discount_type = 6;
+  int32 discount_value = 7;
+  int32 minimum_order_amount = 8;
+  int32 maximum_discount_amount = 9;
+}
+
+message GetCouponPolicyRequest {
+  int64 id = 1;
+}
+
+message ListCouponPoliciesRequest {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message CouponPolicy {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  int32 total_quantity = 4;
+  int32 issued_quantity = 5;
+  string start_time = 6;
+  string end_time = 7;
+  string discount_type = 8;
+  int32 discount_value = 9;
+  int32 minimum_order_amount = 10;
+  int32 maximum_discount_amount = 11;
+  string created_at = 12;
+}
+
+message CouponPolicyResponse {
+  CouponPolicy policy = 1;
+}
+
+message ListCouponPoliciesResponse {
+  repeated CouponPolicy policies = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+message IssueCouponRequest {
+  int64 user_id = 1;
+  int64 coupon_policy_id = 2;
+}
+
+message UseCouponRequest {
+  int64 coupon_id = 1;
+  int64 order_id = 2;
+  int32 order_amount = 3;
+}
+
+message CancelCouponRequest {
+  int64 coupon_id = 1;
+}
+
+message GetUserCouponsRequest {
+  int64 user_id = 1;
+}
+
+message Coupon {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 order_id = 3;
+  string status = 4;
+  string expiration_time = 5;
+  string issued_at = 6;
+  CouponPolicy policy = 7;
+}
+
+message CouponResponse {
+  Coupon coupon = 1;
+}
+
+message GetUserCouponsResponse {
+  repeated Coupon coupons = 1;
+}

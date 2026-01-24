@@ -1,88 +1,115 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { createClient, RedisClientType } from 'redis';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
+import Redlock from 'redlock';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-    private client: RedisClientType;
+  private readonly logger = new Logger(RedisService.name);
+  private client!: Redis;
+  private redlock!: Redlock;
 
-    async onModuleInit() {
-        this.client = createClient({
-            url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`,
-        });
+  constructor(private readonly configService: ConfigService) {}
 
-        this.client.on('error', (err) => console.error('Redis Client Error', err));
-        await this.client.connect();
+  async onModuleInit(): Promise<void> {
+    const host = this.configService.get<string>('REDIS_HOST', 'localhost');
+    const port = this.configService.get<number>('REDIS_PORT', 6379);
+    const password = this.configService.get<string>('REDIS_PASSWORD');
+
+    this.client = new Redis({
+      host,
+      port,
+      password,
+      retryStrategy: (times: number) => {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+    });
+
+    this.redlock = new Redlock([this.client], {
+      driftFactor: 0.01,
+      retryCount: 10,
+      retryDelay: 200,
+      retryJitter: 200,
+      automaticExtensionThreshold: 500,
+    });
+
+    this.client.on('connect', () => {
+      this.logger.log('Redis connected successfully');
+    });
+
+    this.client.on('error', (error: Error) => {
+      this.logger.error('Redis connection error', error.stack);
+    });
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.client.quit();
+    this.logger.log('Redis connection closed');
+  }
+
+  getClient(): Redis {
+    return this.client;
+  }
+
+  async get(key: string): Promise<string | null> {
+    return this.client.get(key);
+  }
+
+  async set(key: string, value: string, ttl?: number): Promise<'OK'> {
+    if (ttl) {
+      return this.client.set(key, value, 'EX', ttl);
     }
+    return this.client.set(key, value);
+  }
 
-    async onModuleDestroy() {
-        await this.client.quit();
+  async del(key: string): Promise<number> {
+    return this.client.del(key);
+  }
+
+  async incr(key: string): Promise<number> {
+    return this.client.incr(key);
+  }
+
+  async decr(key: string): Promise<number> {
+    return this.client.decr(key);
+  }
+
+  async exists(key: string): Promise<number> {
+    return this.client.exists(key);
+  }
+
+  async acquireLock(resource: string, ttl = 5000): Promise<Redlock.Lock> {
+    try {
+      const lock = await this.redlock.acquire([`lock:${resource}`], ttl);
+      this.logger.debug(`Lock acquired for resource: ${resource}`);
+      return lock;
+    } catch (error: unknown) {
+      this.logger.error(`Failed to acquire lock for resource: ${resource}`, error);
+      throw error;
     }
+  }
 
-    getClient(): RedisClientType {
-        return this.client;
+  async releaseLock(lock: Redlock.Lock): Promise<void> {
+    try {
+      await lock.release();
+      this.logger.debug('Lock released successfully');
+    } catch (error: unknown) {
+      this.logger.error('Failed to release lock', error);
+      throw error;
     }
+  }
 
-    // 분산 락 획득
-    async acquireLock(key: string, ttl: number = 10000): Promise<boolean> {
-        const lockKey = `lock:${key}`;
-        const lockValue = Date.now().toString();
-
-        const result = await this.client.set(lockKey, lockValue, {
-            NX: true,
-            PX: ttl,
-        });
-
-        return result === 'OK';
+  async executeWithLock<T>(
+    resource: string,
+    callback: () => Promise<T>,
+    ttl = 5000,
+  ): Promise<T> {
+    const lock = await this.acquireLock(resource, ttl);
+    try {
+      return await callback();
+    } finally {
+      await this.releaseLock(lock);
     }
-
-    // 분산 락 해제
-    async releaseLock(key: string): Promise<void> {
-        const lockKey = `lock:${key}`;
-        await this.client.del(lockKey);
-    }
-
-    // 캐시 설정
-    async set(key: string, value: string, ttl?: number): Promise<void> {
-        if (ttl) {
-            await this.client.setEx(key, ttl, value);
-        } else {
-            await this.client.set(key, value);
-        }
-    }
-
-    // 캐시 조회
-    async get(key: string): Promise<string | null> {
-        return await this.client.get(key);
-    }
-
-    // 캐시 삭제
-    async del(key: string): Promise<void> {
-        await this.client.del(key);
-    }
-
-    // 원자적 증가
-    async incr(key: string): Promise<number> {
-        return await this.client.incr(key);
-    }
-
-    // 원자적 감소
-    async decr(key: string): Promise<number> {
-        return await this.client.decr(key);
-    }
-
-    // 원자적 감소 (음수 방지)
-    async decrBy(key: string, decrement: number): Promise<number> {
-        return await this.client.decrBy(key, decrement);
-    }
-
-    // 키 존재 확인
-    async exists(key: string): Promise<boolean> {
-        const result = await this.client.exists(key);
-        return result === 1;
-    }
-
-    // TTL 설정
-    async expire(key: string, seconds: number): Promise<void> {
-        await this.client.expire(key, seconds);
-    }
+  }
 }

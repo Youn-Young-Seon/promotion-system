@@ -1,160 +1,272 @@
-# Promotion System - Setup Guide
+# Setup Guide
 
-## 프로젝트 구조
+프로모션 시스템 설치 및 실행 가이드
 
-```
-promotion-system/
-├── apps/
-│   ├── coupon-service/      # 쿠폰 서비스 (포트: 3001)
-│   ├── point-service/       # 적립금 서비스 (포트: 3002)
-│   └── timesale-service/    # 타임세일 서비스 (포트: 3003)
-├── docker-compose.yml       # 인프라 설정
-└── package.json
-```
+## 1. 사전 요구사항
 
-## 설치 및 실행 가이드
+다음 소프트웨어가 설치되어 있어야 합니다:
 
-### 1. 인프라 실행
+- **Node.js** >= 18.x
+- **pnpm** >= 8.x
+- **Docker** & **Docker Compose**
+- **Git**
 
-Docker Compose로 MySQL, Redis, Kafka, etcd를 실행합니다:
+### pnpm 설치
 
 ```bash
-cd C:\Users\82104\Documents\promotion-system
+npm install -g pnpm
+```
+
+## 2. 프로젝트 클론 및 의존성 설치
+
+```bash
+# 프로젝트 클론
+git clone <repository-url>
+cd promotion-system
+
+# 의존성 설치
+pnpm install
+```
+
+## 3. 환경 변수 설정
+
+각 서비스의 환경 변수 파일을 생성합니다:
+
+```bash
+# Coupon Service
+cp apps/coupon-service/.env.example apps/coupon-service/.env
+
+# Point Service
+cp apps/point-service/.env.example apps/point-service/.env
+
+# TimeSale Service
+cp apps/timesale-service/.env.example apps/timesale-service/.env
+```
+
+### 데이터베이스 URL 설정
+
+`.env` 파일에서 각 서비스의 `DATABASE_URL`을 확인하고 필요시 수정합니다:
+
+**Coupon Service** (`.env`):
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/coupon_db?schema=public"
+```
+
+**Point Service** (`.env`):
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5433/point_db?schema=public"
+```
+
+**TimeSale Service** (`.env`):
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5434/timesale_db?schema=public"
+```
+
+## 4. 인프라 서비스 시작
+
+Docker Compose로 PostgreSQL, Redis, Kafka, etcd를 실행합니다:
+
+```bash
 docker-compose up -d
 ```
 
-컨테이너 상태 확인:
+### 서비스 상태 확인
+
 ```bash
 docker-compose ps
 ```
 
-### 2. 의존성 설치
+모든 서비스가 `healthy` 상태인지 확인합니다.
+
+### 로그 확인
 
 ```bash
-npm install
+docker-compose logs -f
 ```
 
-### 3. 환경 변수 설정
+## 5. Prisma 마이그레이션
 
-각 서비스의 `.env.example` 파일을 `.env`로 복사:
+각 서비스의 데이터베이스 스키마를 생성합니다:
+
+```bash
+# Coupon Service 마이그레이션
+cd apps/coupon-service
+pnpm prisma migrate dev --name init
+cd ../..
+
+# Point Service 마이그레이션
+cd apps/point-service
+pnpm prisma migrate dev --name init
+cd ../..
+
+# TimeSale Service 마이그레이션
+cd apps/timesale-service
+pnpm prisma migrate dev --name init
+cd ../..
+```
+
+## 6. Prisma Client 생성
 
 ```bash
 # Coupon Service
-copy apps\coupon-service\.env.example apps\coupon-service\.env
+cd apps/coupon-service
+pnpm prisma generate
+cd ../..
 
 # Point Service
-copy apps\point-service\.env.example apps\point-service\.env
+cd apps/point-service
+pnpm prisma generate
+cd ../..
 
-# Time Sale Service
-copy apps\timesale-service\.env.example apps\timesale-service\.env
+# TimeSale Service
+cd apps/timesale-service
+pnpm prisma generate
+cd ../..
 ```
 
-### 4. Prisma 마이그레이션
+또는 루트에서 한 번에:
 
-각 서비스별로 데이터베이스 마이그레이션 실행:
-
-**Coupon Service:**
 ```bash
-cd apps\coupon-service
-npx prisma migrate dev --name init
-npx prisma generate
-cd ..\..
+pnpm prisma:generate
 ```
 
-**Point Service:**
-```bash
-cd apps\point-service
-npx prisma migrate dev --name init
-npx prisma generate
-cd ..\..
-```
+## 7. 서비스 실행
 
-**Time Sale Service:**
-```bash
-cd apps\timesale-service
-npx prisma migrate dev --name init
-npx prisma generate
-cd ..\..
-```
-
-### 5. 서비스 실행
+### 개발 모드
 
 각 서비스를 별도 터미널에서 실행:
 
-**터미널 1 - Coupon Service:**
 ```bash
-npm run start:dev coupon-service
+# Terminal 1 - Coupon Service
+cd apps/coupon-service
+pnpm start:dev
+
+# Terminal 2 - Point Service
+cd apps/point-service
+pnpm start:dev
+
+# Terminal 3 - TimeSale Service
+cd apps/timesale-service
+pnpm start:dev
 ```
 
-**터미널 2 - Point Service:**
+### 서비스 포트 확인
+
+- **Coupon Service**: http://localhost:3001
+- **Point Service**: http://localhost:3002
+- **TimeSale Service**: http://localhost:3003
+
+## 8. 동작 확인
+
+### Health Check
+
+각 서비스가 정상적으로 실행되었는지 확인:
+
 ```bash
-npm run start:dev point-service
+# Coupon Service
+curl http://localhost:3001/api/v1/coupon-policies
+
+# Point Service
+curl http://localhost:3002/api/v1/points/users/1/balance
+
+# TimeSale Service
+curl http://localhost:3003/api/v1/products
 ```
 
-**터미널 3 - Time Sale Service:**
+### 데이터베이스 연결 확인
+
 ```bash
-npm run start:dev timesale-service
+# PostgreSQL 컨테이너 접속
+docker exec -it postgres-coupon psql -U postgres -d coupon_db
+
+# 테이블 확인
+\dt
+
+# 종료
+\q
 ```
 
-## API 엔드포인트
-
-### Coupon Service (http://localhost:3001)
-- `POST /api/coupons/policies` - 쿠폰 정책 생성
-- `POST /api/coupons/issue` - 쿠폰 발급
-- `GET /api/coupons/user/:userId` - 사용자 쿠폰 조회
-
-### Point Service (http://localhost:3002)
-- `GET /api/points/:userId` - 적립금 잔액 조회
-- `GET /api/points/:userId/history` - 적립금 내역 조회
-- `POST /api/points/add` - 적립금 적립
-- `POST /api/points/use` - 적립금 사용
-
-### Time Sale Service (http://localhost:3003)
-- `POST /api/timesales` - 타임세일 등록
-- `POST /api/timesales/:id/orders` - 타임세일 주문
-- `GET /api/timesales/:id` - 타임세일 조회
-
-## 테스트 시나리오
-
-### 1. 쿠폰 발급 테스트
+## 9. 테스트
 
 ```bash
-# 1. 쿠폰 정책 생성
-curl -X POST http://localhost:3001/api/coupons/policies \
-  -H "Content-Type: application/json" \
-  -d "{\"title\":\"신규가입쿠폰\",\"description\":\"10% 할인\",\"totalQuantity\":100,\"startTime\":\"2026-01-08T00:00:00Z\",\"endTime\":\"2026-12-31T23:59:59Z\",\"discountType\":\"PERCENTAGE\",\"discountValue\":10,\"minimumOrderAmount\":10000,\"maximumDiscountAmount\":5000}"
+# 단위 테스트
+pnpm test
 
-# 2. 쿠폰 발급
-curl -X POST http://localhost:3001/api/coupons/issue \
-  -H "Content-Type: application/json" \
-  -d "{\"policyId\":\"1\",\"userId\":\"1\"}"
+# 테스트 커버리지
+pnpm test:cov
 ```
 
-### 2. 적립금 테스트
+## 10. 중지 및 정리
+
+### 서비스 중지
+
+각 터미널에서 `Ctrl+C`로 서비스를 중지합니다.
+
+### 인프라 중지
 
 ```bash
-# 1. 적립금 적립
-curl -X POST http://localhost:3002/api/points/add \
-  -H "Content-Type: application/json" \
-  -d "{\"userId\":\"1\",\"amount\":10000,\"description\":\"회원가입 적립\"}"
+# 컨테이너 중지
+docker-compose down
 
-# 2. 잔액 조회
-curl http://localhost:3002/api/points/1
+# 볼륨까지 삭제 (데이터 삭제)
+docker-compose down -v
 ```
 
 ## 문제 해결
 
-### Docker 컨테이너가 시작되지 않는 경우
+### 포트가 이미 사용 중인 경우
+
 ```bash
-docker-compose down -v
-docker-compose up -d
+# 포트 사용 프로세스 확인 (Windows)
+netstat -ano | findstr :3001
+
+# 포트 사용 프로세스 확인 (macOS/Linux)
+lsof -i :3001
 ```
 
-### Prisma 클라이언트 생성 오류
+### Prisma Client 생성 오류
+
 ```bash
-cd apps/[service-name]
-npx prisma generate
+# Prisma Client 삭제 후 재생성
+rm -rf apps/coupon-service/prisma/generated
+cd apps/coupon-service
+pnpm prisma generate
 ```
 
-### 포트 충돌
-각 서비스의 `.env` 파일에서 PORT 값을 변경하세요.
+### Docker 컨테이너 재시작
+
+```bash
+# 특정 컨테이너 재시작
+docker-compose restart postgres-coupon
+
+# 모든 컨테이너 재시작
+docker-compose restart
+```
+
+### 데이터베이스 초기화
+
+```bash
+# 마이그레이션 초기화
+cd apps/coupon-service
+pnpm prisma migrate reset
+```
+
+## 다음 단계
+
+Phase 2 (V1 구현)이 완료되었습니다. 다음 단계는:
+
+1. **Phase 3**: Redis 통합 및 성능 최적화
+   - 분산 락 추가 (Coupon Service)
+   - Redis 캐싱 추가 (Point Service)
+   - Redis 재고 관리 (TimeSale Service)
+
+2. **Phase 4**: Kafka 이벤트 드리븐
+   - Kafka Producer/Consumer 구현
+   - 비동기 이벤트 처리
+
+3. **Phase 5**: API Gateway 구현
+   - gRPC 통신
+   - 인증/인가
+   - Circuit Breaker
+
+자세한 내용은 README.md를 참조하세요.

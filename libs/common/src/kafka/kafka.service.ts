@@ -1,91 +1,85 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, Consumer, EachMessagePayload } from 'kafkajs';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
-    private kafka: Kafka;
-    private producer: Producer;
-    private consumers: Map<string, Consumer> = new Map();
+  private readonly logger = new Logger(KafkaService.name);
+  private kafka!: Kafka;
+  private producer!: Producer;
+  private consumers: Map<string, Consumer> = new Map();
 
-    constructor() {
-        this.kafka = new Kafka({
-            clientId: 'promotion-system',
-            brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
-        });
-        this.producer = this.kafka.producer();
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit(): Promise<void> {
+    const brokers = this.configService
+      .get<string>('KAFKA_BROKERS', 'localhost:9092')
+      .split(',');
+
+    this.kafka = new Kafka({
+      clientId: this.configService.get<string>('KAFKA_CLIENT_ID', 'promotion-system'),
+      brokers,
+      retry: {
+        initialRetryTime: 100,
+        retries: 8,
+      },
+    });
+
+    this.producer = this.kafka.producer();
+    await this.producer.connect();
+    this.logger.log('Kafka producer connected successfully');
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.producer.disconnect();
+
+    for (const [groupId, consumer] of this.consumers.entries()) {
+      await consumer.disconnect();
+      this.logger.log(`Kafka consumer disconnected: ${groupId}`);
     }
 
-    async onModuleInit() {
-        await this.producer.connect();
-        console.log('Kafka Producer connected');
+    this.logger.log('Kafka connections closed');
+  }
+
+  async emit(topic: string, message: Record<string, unknown>): Promise<void> {
+    try {
+      await this.producer.send({
+        topic,
+        messages: [
+          {
+            key: String(message.id ?? Date.now()),
+            value: JSON.stringify(message),
+            timestamp: String(Date.now()),
+          },
+        ],
+      });
+      this.logger.debug(`Message sent to topic ${topic}`, { message });
+    } catch (error: unknown) {
+      this.logger.error(`Failed to send message to topic ${topic}`, error);
+      throw error;
     }
+  }
 
-    async onModuleDestroy() {
-        await this.producer.disconnect();
+  async subscribe(
+    topic: string,
+    groupId: string,
+    handler: (payload: EachMessagePayload) => Promise<void>,
+  ): Promise<void> {
+    const consumer = this.kafka.consumer({ groupId });
+    await consumer.connect();
+    await consumer.subscribe({ topic, fromBeginning: false });
 
-        for (const [groupId, consumer] of this.consumers.entries()) {
-            await consumer.disconnect();
-            console.log(`Kafka Consumer disconnected: ${groupId}`);
+    await consumer.run({
+      eachMessage: async (payload: EachMessagePayload) => {
+        try {
+          await handler(payload);
+        } catch (error: unknown) {
+          this.logger.error(`Error processing message from topic ${topic}`, error);
         }
-    }
+      },
+    });
 
-    // 메시지 전송
-    async sendMessage(topic: string, message: any): Promise<void> {
-        await this.producer.send({
-            topic,
-            messages: [
-                {
-                    value: JSON.stringify(message),
-                    timestamp: Date.now().toString(),
-                },
-            ],
-        });
-    }
-
-    // 메시지 일괄 전송
-    async sendMessages(topic: string, messages: any[]): Promise<void> {
-        await this.producer.send({
-            topic,
-            messages: messages.map((msg) => ({
-                value: JSON.stringify(msg),
-                timestamp: Date.now().toString(),
-            })),
-        });
-    }
-
-    // Consumer 등록 및 시작
-    async subscribe(
-        topic: string,
-        groupId: string,
-        handler: (payload: EachMessagePayload) => Promise<void>,
-    ): Promise<void> {
-        const consumer = this.kafka.consumer({ groupId });
-
-        await consumer.connect();
-        await consumer.subscribe({ topic, fromBeginning: false });
-
-        await consumer.run({
-            eachMessage: async (payload) => {
-                try {
-                    await handler(payload);
-                } catch (error) {
-                    console.error(`Error processing message from topic ${topic}:`, error);
-                    // 에러 처리 로직 (DLQ 전송 등)
-                }
-            },
-        });
-
-        this.consumers.set(groupId, consumer);
-        console.log(`Kafka Consumer started: ${groupId} on topic ${topic}`);
-    }
-
-    // Consumer 중지
-    async unsubscribe(groupId: string): Promise<void> {
-        const consumer = this.consumers.get(groupId);
-        if (consumer) {
-            await consumer.disconnect();
-            this.consumers.delete(groupId);
-            console.log(`Kafka Consumer stopped: ${groupId}`);
-        }
-    }
+    this.consumers.set(groupId, consumer);
+    this.logger.log(`Kafka consumer subscribed to topic ${topic} with group ${groupId}`);
+  }
 }

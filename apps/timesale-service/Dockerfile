@@ -1,36 +1,46 @@
-# Time Sale Service Dockerfile
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
-RUN npm ci
+# Install pnpm
+RUN npm install -g pnpm
 
-COPY libs/ ./libs/
-COPY apps/timesale-service/ ./apps/timesale-service/
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+COPY apps/timesale-service/package.json ./apps/timesale-service/
 
-WORKDIR /app/apps/timesale-service
-RUN npx prisma generate
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Generate Prisma Client
+RUN cd apps/timesale-service && pnpm prisma generate
+
+# Build application
+RUN pnpm build timesale-service
+
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
-RUN npm run build timesale-service
 
-FROM node:18-alpine
+RUN npm install -g pnpm
 
-WORKDIR /app
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-COPY package*.json ./
-RUN npm ci --only=production
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
 
+# Copy built application and Prisma schema
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/apps/timesale-service/prisma ./apps/timesale-service/prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/apps/timesale-service/prisma ./prisma
 
-ENV NODE_ENV=production
-ENV PORT=3003
+# Generate Prisma Client for production
+RUN cd /app && pnpm prisma generate --schema=./prisma/schema.prisma
 
 EXPOSE 3003
 
-CMD ["node", "dist/apps/timesale-service/main"]
+CMD ["node", "dist/apps/timesale-service/main.js"]

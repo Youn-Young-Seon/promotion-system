@@ -1,36 +1,46 @@
-# Point Service Dockerfile
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY nest-cli.json ./
-RUN npm ci
+# Install pnpm
+RUN npm install -g pnpm
 
-COPY libs/ ./libs/
-COPY apps/point-service/ ./apps/point-service/
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+COPY apps/point-service/package.json ./apps/point-service/
 
-WORKDIR /app/apps/point-service
-RUN npx prisma generate
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Generate Prisma Client
+RUN cd apps/point-service && pnpm prisma generate
+
+# Build application
+RUN pnpm build point-service
+
+# Production stage
+FROM node:20-alpine
 
 WORKDIR /app
-RUN npm run build point-service
 
-FROM node:18-alpine
+RUN npm install -g pnpm
 
-WORKDIR /app
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-COPY package*.json ./
-RUN npm ci --only=production
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
 
+# Copy built application and Prisma schema
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/apps/point-service/prisma ./apps/point-service/prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/apps/point-service/prisma ./prisma
 
-ENV NODE_ENV=production
-ENV PORT=3002
+# Generate Prisma Client for production
+RUN cd /app && pnpm prisma generate --schema=./prisma/schema.prisma
 
 EXPOSE 3002
 
-CMD ["node", "dist/apps/point-service/main"]
+CMD ["node", "dist/apps/point-service/main.js"]

@@ -1,44 +1,23 @@
 #!/bin/bash
 
-# Docker 이미지 빌드 스크립트
+# Build all service Docker images
 
-set -e
+echo "Building Docker images for all services..."
 
-echo "🚀 Building Docker images for Promotion System..."
+# Build API Gateway
+echo "Building api-gateway..."
+docker build -f apps/api-gateway/Dockerfile -t promotion-system/api-gateway:latest .
 
-# 버전 설정
-VERSION=${1:-latest}
-REGISTRY=${2:-promotion-system}
+# Build Coupon Service
+echo "Building coupon-service..."
+docker build -f apps/coupon-service/Dockerfile -t promotion-system/coupon-service:latest .
 
-echo "Version: $VERSION"
-echo "Registry: $REGISTRY"
+# Build Point Service
+echo "Building point-service..."
+docker build -f apps/point-service/Dockerfile -t promotion-system/point-service:latest .
 
-# Coupon Service 빌드
-echo ""
-echo "📦 Building Coupon Service..."
-docker build -t $REGISTRY/coupon-service:$VERSION \
-  -f apps/coupon-service/Dockerfile .
+# Build TimeSale Service
+echo "Building timesale-service..."
+docker build -f apps/timesale-service/Dockerfile -t promotion-system/timesale-service:latest .
 
-# Point Service 빌드
-echo ""
-echo "📦 Building Point Service..."
-docker build -t $REGISTRY/point-service:$VERSION \
-  -f apps/point-service/Dockerfile .
-
-# Time Sale Service 빌드
-echo ""
-echo "📦 Building Time Sale Service..."
-docker build -t $REGISTRY/timesale-service:$VERSION \
-  -f apps/timesale-service/Dockerfile .
-
-echo ""
-echo "✅ All images built successfully!"
-echo ""
-echo "Images:"
-docker images | grep $REGISTRY
-
-echo ""
-echo "To push to registry:"
-echo "  docker push $REGISTRY/coupon-service:$VERSION"
-echo "  docker push $REGISTRY/point-service:$VERSION"
-echo "  docker push $REGISTRY/timesale-service:$VERSION"
+echo "All images built successfully!"

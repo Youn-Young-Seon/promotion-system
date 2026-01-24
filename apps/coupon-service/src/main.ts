@@ -1,34 +1,53 @@
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
 
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
+async function bootstrap(): Promise<void> {
+  const logger = new Logger('CouponService');
+  const app = await NestFactory.create(AppModule);
 
-    app.useGlobalPipes(
-        new ValidationPipe({
-            whitelist: true,
-            transform: true,
-        }),
-    );
+  const httpPort = process.env.SERVICE_PORT ?? 3001;
+  const grpcPort = process.env.GRPC_PORT ?? 50051;
 
-    app.setGlobalPrefix('api');
+  // Global Validation Pipe
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: false,
+      },
+    }),
+  );
 
-    // Swagger 설정
-    const config = new DocumentBuilder()
-        .setTitle('Coupon Service API')
-        .setDescription('쿠폰 발급 및 관리 API')
-        .setVersion('1.0')
-        .addTag('coupons')
-        .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/docs', app, document);
+  // CORS
+  app.enableCors();
 
-    const port = process.env.PORT || 3001;
-    await app.listen(port);
+  // gRPC 마이크로서비스 연결
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.GRPC,
+    options: {
+      package: 'coupon',
+      protoPath: join(__dirname, '../../../proto/coupon.proto'),
+      url: `0.0.0.0:${grpcPort}`,
+      loader: {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true,
+      },
+    },
+  });
 
-    console.log(`Coupon Service is running on: http://localhost:${port}`);
-    console.log(`Swagger docs available at: http://localhost:${port}/api/docs`);
+  await app.startAllMicroservices();
+  await app.listen(httpPort);
+
+  logger.log(`Coupon Service (REST) is running on port ${httpPort}`);
+  logger.log(`Coupon Service (gRPC) is running on port ${grpcPort}`);
 }
-bootstrap();
+
+void bootstrap();

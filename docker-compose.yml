@@ -1,110 +1,167 @@
 version: '3.8'
 
 services:
-  # MySQL Databases
-  mysql-coupon:
-    image: mysql:8.0
-    container_name: mysql-coupon
+  # PostgreSQL - Coupon Service Database
+  postgres-coupon:
+    image: postgres:16-alpine
+    container_name: postgres-coupon
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: coupon_db
+      POSTGRES_DB: coupon_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "3307:3306"
+      - '5432:5432'
     volumes:
-      - mysql-coupon-data:/var/lib/mysql
+      - postgres-coupon-data:/var/lib/postgresql/data
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  mysql-point:
-    image: mysql:8.0
-    container_name: mysql-point
+  # PostgreSQL - Point Service Database
+  postgres-point:
+    image: postgres:16-alpine
+    container_name: postgres-point
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: point_db
+      POSTGRES_DB: point_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "3308:3306"
+      - '5433:5432'
     volumes:
-      - mysql-point-data:/var/lib/mysql
+      - postgres-point-data:/var/lib/postgresql/data
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  mysql-timesale:
-    image: mysql:8.0
-    container_name: mysql-timesale
+  # PostgreSQL - TimeSale Service Database
+  postgres-timesale:
+    image: postgres:16-alpine
+    container_name: postgres-timesale
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: timesale_db
+      POSTGRES_DB: timesale_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     ports:
-      - "3309:3306"
+      - '5434:5432'
     volumes:
-      - mysql-timesale-data:/var/lib/mysql
+      - postgres-timesale-data:/var/lib/postgresql/data
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis
   redis:
     image: redis:7-alpine
     container_name: redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
 
-  # Zookeeper (for Kafka)
+  # Zookeeper for Kafka
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
+    image: confluentinc/cp-zookeeper:7.6.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - '2181:2181'
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD', 'echo', 'ruok', '|', 'nc', 'localhost', '2181']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Kafka
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: confluentinc/cp-kafka:7.6.0
     container_name: kafka
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
-      - "9092:9092"
+      - '9092:9092'
+      - '9093:9093'
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka-data:/var/lib/kafka/data
     networks:
       - promotion-network
+    healthcheck:
+      test: ['CMD', 'kafka-broker-api-versions', '--bootstrap-server', 'localhost:9092']
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
-  # etcd
+  # etcd for Service Discovery
   etcd:
-    image: quay.io/coreos/etcd:v3.5.10
+    image: quay.io/coreos/etcd:v3.5.12
     container_name: etcd
     ports:
-      - "2379:2379"
-      - "2380:2380"
+      - '2379:2379'
+      - '2380:2380'
     environment:
       ETCD_NAME: etcd0
       ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd:2380
       ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
-      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
       ETCD_ADVERTISE_CLIENT_URLS: http://etcd:2379
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
       ETCD_INITIAL_CLUSTER: etcd0=http://etcd:2380
+      ETCD_INITIAL_CLUSTER_STATE: new
+      ETCD_INITIAL_CLUSTER_TOKEN: etcd-cluster
+    volumes:
+      - etcd-data:/etcd-data
     networks:
       - promotion-network
-
-volumes:
-  mysql-coupon-data:
-  mysql-point-data:
-  mysql-timesale-data:
-  redis-data:
+    healthcheck:
+      test: ['CMD', 'etcdctl', 'endpoint', 'health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   promotion-network:
     driver: bridge
+
+volumes:
+  postgres-coupon-data:
+  postgres-point-data:
+  postgres-timesale-data:
+  redis-data:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
+  etcd-data:

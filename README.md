@@ -1,94 +1,148 @@
-# 프로모션 시스템 (Promotion System)
+# Promotion System
 
-대규모 트래픽을 처리하는 엔터프라이즈급 프로모션 시스템입니다. 쿠폰 발급, 적립금 관리, 타임세일 주문을 처리하는 3개의 마이크로서비스로 구성되어 있습니다.
+대규모 트래픽을 처리하는 프로모션 시스템 - NestJS 기반 마이크로서비스 아키텍처
 
-## 🎯 핵심 성과
+## 프로젝트 개요
 
-- **초당 5,000+ 요청 처리** (목표 대비 5배 달성)
-- **쿠폰 발급 50배 성능 향상** (100 TPS → 5,000+ TPS)
-- **타임세일 주문 100배 성능 향상** (50 TPS → 5,000+ TPS)
-- **적립금 조회 4배 성능 향상** (200ms → 50ms)
+이 프로젝트는 초당 1,000건 이상의 요청을 처리할 수 있는 고성능 프로모션 시스템입니다.
 
-## 📚 문서
+### 주요 기능
 
-- **[프로젝트 요약](PROJECT_SUMMARY.md)** - 핵심 성과 및 기술 하이라이트
-- **[설치 가이드](SETUP.md)** - 개발 환경 설정
-- **[API 테스트](API_TEST_GUIDE.md)** - API 테스트 방법
-- **[Kafka V3](KAFKA_V3_GUIDE.md)** - 비동기 처리 구현
-- **[배포 가이드](DEPLOYMENT.md)** - 프로덕션 배포
-- **[완료 보고서](COMPLETION_REPORT.md)** - 최종 완료 보고서
+- **Coupon Service**: 쿠폰 정책 관리 및 발급/사용
+- **Point Service**: 적립금 조회/적립/사용
+- **Time Sale Service**: 타임세일 상품 관리 및 주문 처리
+- **API Gateway**: 통합 진입점, 라우팅, Rate Limiting
 
-## 기술 스택
+### 기술 스택
 
 - **언어**: TypeScript
 - **프레임워크**: NestJS
-- **ORM**: Prisma
-- **데이터베이스**: MySQL 8.x
-- **캐시**: Redis 7.x
+- **데이터베이스**: PostgreSQL
+- **캐시**: Redis
 - **메시징**: Kafka
 - **Service Discovery**: etcd
 - **Circuit Breaker**: Opossum
+- **ORM**: Prisma
+- **통신**: gRPC (서비스 간), REST (클라이언트)
 
 ## 아키텍처
 
-마이크로서비스 아키텍처로 구성:
-- **Coupon Service** (포트: 3001) - 쿠폰 정책 관리 및 발급/사용
-- **Point Service** (포트: 3002) - 적립금 조회/적립/사용
-- **Time Sale Service** (포트: 3003) - 타임세일 상품 관리 및 주문 처리
+```
+┌─────────────┐
+│   Client    │
+└──────┬──────┘
+       │ REST
+       ▼
+┌─────────────────┐
+│  API Gateway    │ (Port: 4000)
+│  - Auth         │
+│  - Rate Limit   │
+│  - Circuit      │
+│    Breaker      │
+└────────┬────────┘
+         │ gRPC
+    ┌────┴────┬────────┬────────┐
+    ▼         ▼        ▼        ▼
+┌────────┐ ┌──────┐ ┌──────┐ ┌─────────┐
+│Coupon  │ │Point │ │Time  │ │  etcd   │
+│Service │ │Service│ │Sale  │ │(Service │
+│:3001   │ │:3002 │ │Service│ │Discovery)│
+│        │ │      │ │:3003 │ └─────────┘
+└───┬────┘ └──┬───┘ └──┬───┘
+    │         │        │
+    └────┬────┴────┬───┘
+         ▼         ▼
+    ┌─────────┐ ┌──────┐
+    │PostgreSQL│ │Redis │
+    │(3 DBs)  │ │      │
+    └─────────┘ └──────┘
+         │
+         ▼
+    ┌─────────┐
+    │  Kafka  │
+    └─────────┘
+```
 
 ## 시작하기
 
-### 1. 인프라 실행
+### 필수 요구사항
+
+- Node.js >= 18.x
+- pnpm >= 8.x
+- Docker & Docker Compose
+
+### 설치
+
+1. 저장소 클론
+
+```bash
+git clone <repository-url>
+cd promotion-system
+```
+
+2. 의존성 설치
+
+```bash
+pnpm install
+```
+
+3. 환경 변수 설정
+
+```bash
+# 각 서비스의 .env 파일 생성
+cp apps/coupon-service/.env.example apps/coupon-service/.env
+cp apps/point-service/.env.example apps/point-service/.env
+cp apps/timesale-service/.env.example apps/timesale-service/.env
+```
+
+4. 인프라 서비스 시작 (PostgreSQL, Redis, Kafka, etcd)
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. 의존성 설치
+5. Prisma 마이그레이션 실행
 
 ```bash
-npm install
+pnpm prisma:migrate
 ```
 
-### 3. Prisma 마이그레이션
+6. Prisma Client 생성
 
 ```bash
-# Coupon Service
-cd apps/coupon-service
-npx prisma migrate dev
-npx prisma generate
-
-# Point Service
-cd ../point-service
-npx prisma migrate dev
-npx prisma generate
-
-# Time Sale Service
-cd ../timesale-service
-npx prisma migrate dev
-npx prisma generate
+pnpm prisma:generate
 ```
 
-### 4. 서비스 실행
+### 개발 모드 실행
 
 ```bash
-# 개발 모드
-npm run start:dev coupon-service
-npm run start:dev point-service
-npm run start:dev timesale-service
+# 모든 서비스 동시 실행
+pnpm start:dev
+
+# 또는 개별 서비스 실행
+pnpm --filter api-gateway start:dev
+pnpm --filter coupon-service start:dev
+pnpm --filter point-service start:dev
+pnpm --filter timesale-service start:dev
 ```
 
-## 테스트
+### 빌드
+
+```bash
+pnpm build
+```
+
+### 테스트
 
 ```bash
 # 단위 테스트
-npm run test
+pnpm test
+
+# 테스트 커버리지
+pnpm test:cov
 
 # E2E 테스트
-npm run test:e2e
-
-# 커버리지
-npm run test:cov
+pnpm test:e2e
 ```
 
 ## 프로젝트 구조
@@ -96,17 +150,162 @@ npm run test:cov
 ```
 promotion-system/
 ├── apps/
-│   ├── coupon-service/
-│   ├── point-service/
-│   └── timesale-service/
+│   ├── api-gateway/          # API Gateway (포트: 4000)
+│   ├── coupon-service/       # Coupon Service (포트: 3001)
+│   ├── point-service/        # Point Service (포트: 3002)
+│   └── timesale-service/     # Time Sale Service (포트: 3003)
 ├── libs/
-│   └── common/
-├── docker-compose.yml
-└── package.json
+│   └── common/               # 공통 라이브러리
+│       ├── redis/            # Redis 모듈
+│       ├── kafka/            # Kafka 모듈
+│       ├── etcd/             # etcd 모듈
+│       └── grpc/             # gRPC 설정
+├── proto/                    # gRPC Proto 정의
+├── scripts/                  # 빌드/배포 스크립트
+├── docker-compose.yml        # 개발 환경
+└── docker-compose.prod.yml   # 프로덕션 환경
 ```
+
+## API 엔드포인트
+
+### Coupon Service
+
+- `POST /api/v1/coupon-policies` - 쿠폰 정책 생성
+- `GET /api/v1/coupon-policies/:id` - 쿠폰 정책 조회
+- `GET /api/v1/coupon-policies` - 쿠폰 정책 목록
+- `POST /api/v1/coupons/issue` - 쿠폰 발급
+- `POST /api/v1/coupons/:id/use` - 쿠폰 사용
+- `POST /api/v1/coupons/:id/cancel` - 쿠폰 취소
+- `GET /api/v1/coupons/user/:userId` - 사용자 쿠폰 조회
+
+### Point Service
+
+- `POST /api/v1/points/earn` - 적립금 적립
+- `POST /api/v1/points/use` - 적립금 사용
+- `POST /api/v1/points/cancel` - 적립금 취소
+- `GET /api/v1/points/users/:userId/balance` - 잔액 조회
+- `GET /api/v1/points/users/:userId/history` - 거래 내역
+
+### Time Sale Service
+
+- `POST /api/v1/products` - 상품 등록
+- `GET /api/v1/products/:id` - 상품 조회
+- `POST /api/v1/time-sales` - 타임세일 생성
+- `GET /api/v1/time-sales` - 타임세일 목록
+- `GET /api/v1/time-sales/:id` - 타임세일 조회
+- `POST /api/v1/time-sales/:id/orders` - 주문 생성
+- `GET /api/v1/orders/:id` - 주문 조회
 
 ## 성능 목표
 
-- 초당 1,000 TPS 이상
-- 평균 응답 시간 < 200ms
-- 시스템 가용성 99.9%
+- **처리량**: 초당 1,000건 이상의 요청 처리
+- **응답 시간**: 평균 100ms 이하
+- **동시성**: 분산 락을 통한 안전한 동시성 제어
+- **가용성**: Circuit Breaker를 통한 장애 격리
+
+## 코딩 컨벤션
+
+이 프로젝트는 TypeScript와 NestJS의 공식 Best Practices를 따릅니다.
+
+- **Strict Mode**: TypeScript strict 모드 활성화
+- **네이밍**:
+  - 파일/폴더: kebab-case
+  - 클래스: PascalCase
+  - 함수/변수: camelCase
+  - 상수: UPPER_SNAKE_CASE
+- **타입**: `any` 금지, `unknown` 사용 권장
+- **의존성 주입**: Constructor Injection 사용
+
+## 🎯 구현 완료 현황
+
+### ✅ Phase 1-2: 기본 구조 및 V1 구현 (완료)
+- NestJS 모노레포 프로젝트
+- 3개 마이크로서비스 (Coupon, Point, TimeSale)
+- Prisma ORM + PostgreSQL
+- Docker Compose 환경
+
+### ✅ Phase 3: Redis 통합 및 성능 최적화 (완료)
+- **Coupon Service**: Redis Redlock 분산 락 적용
+- **Point Service**: Redis 캐싱 (5분 TTL)
+- **TimeSale Service**: Redis 재고 관리
+- **All Services**: Kafka 이벤트 발행
+
+### ✅ Phase 4: API Gateway 및 gRPC 통신 (완료)
+- **API Gateway**: REST → gRPC 프록시 (포트: 4000)
+- **gRPC 서버**: 각 마이크로서비스에 gRPC 서버 추가
+- **Circuit Breaker**: Opossum 기반 장애 격리
+- **Rate Limiting**: Throttler 기반 분당 100건 제한
+- **E2E 테스트**: 3개 테스트 스위트 (Coupon, Point, TimeSale)
+
+### ⏳ Phase 5-6: 고급 기능 (선택사항)
+- 모니터링 (Prometheus, Grafana)
+- JWT 인증/인가
+- Swagger API 문서화
+
+## 📖 문서
+
+- [SETUP.md](./SETUP.md) - 설치 및 실행 가이드
+- [API_GUIDE.md](./API_GUIDE.md) - API 테스트 가이드
+- [PROJECT_COMPLETION.md](./PROJECT_COMPLETION.md) - 프로젝트 완료 보고서
+
+## 🚀 빠른 시작
+
+```bash
+# 1. 의존성 설치
+pnpm install
+
+# 2. 인프라 시작
+docker-compose up -d
+
+# 3. 마이그레이션
+cd apps/coupon-service && pnpm prisma migrate dev --name init
+cd ../point-service && pnpm prisma migrate dev --name init
+cd ../timesale-service && pnpm prisma migrate dev --name init
+
+# 4. 서비스 실행 (각 터미널에서)
+cd apps/coupon-service && pnpm start:dev
+cd apps/point-service && pnpm start:dev
+cd apps/timesale-service && pnpm start:dev
+```
+
+## 🎨 핵심 기능
+
+### 1. 분산 락 (Coupon Service)
+```typescript
+// Redis Redlock으로 쿠폰 발급 동시성 제어
+await this.redis.executeWithLock(
+  `coupon:policy:${policyId}`,
+  async () => {
+    // 쿠폰 발급 로직
+  },
+  10000, // 10초 타임아웃
+);
+```
+
+### 2. Redis 캐싱 (Point Service)
+```typescript
+// 포인트 잔액 조회 캐싱 (5분 TTL)
+const cached = await this.redis.get(`point:balance:${userId}`);
+if (cached) return parseInt(cached, 10);
+```
+
+### 3. Redis 재고 관리 (TimeSale Service)
+```typescript
+// Redis 기반 고성능 재고 처리
+const inventory = await this.redis.get(`timesale:inventory:${id}`);
+await this.redis.set(`timesale:inventory:${id}`, newInventory);
+```
+
+### 4. Kafka 이벤트
+```typescript
+// 비동기 이벤트 발행
+await this.kafka.emit('coupon.issued', { userId, couponId });
+```
+
+## 라이선스
+
+MIT
+
+## 기여
+
+이슈와 PR은 언제나 환영합니다!

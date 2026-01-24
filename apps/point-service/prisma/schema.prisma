@@ -1,4 +1,4 @@
-// This is your Prisma schema file for Point Service
+// Point Service Database Schema
 
 generator client {
   provider = "prisma-client-js"
@@ -6,16 +6,16 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model PointBalance {
   userId    BigInt   @id @map("user_id")
   balance   BigInt   @default(0)
-  version   BigInt   @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  version   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp
 
   @@map("point_balances")
 }
@@ -25,18 +25,20 @@ model Point {
   userId          BigInt    @map("user_id")
   amount          BigInt
   type            PointType
-  description     String    @db.VarChar(255)
+  description     String    @db.VarChar(500)
   balanceSnapshot BigInt    @map("balance_snapshot")
-  version         BigInt    @default(0)
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+  version         Int       @default(0)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamp
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamp
 
   @@index([userId])
   @@index([createdAt])
+  @@index([type])
   @@map("points")
 }
 
 enum PointType {
   EARNED
   SPENT
+  CANCELED
 }

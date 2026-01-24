@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package timesale;
+
+service TimeSaleService {
+  rpc CreateProduct (CreateProductRequest) returns (ProductResponse);
+  rpc GetProduct (GetProductRequest) returns (ProductResponse);
+  rpc CreateTimeSale (CreateTimeSaleRequest) returns (TimeSaleResponse);
+  rpc GetTimeSale (GetTimeSaleRequest) returns (TimeSaleResponse);
+  rpc ListTimeSales (ListTimeSalesRequest) returns (ListTimeSalesResponse);
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+  rpc GetOrder (GetOrderRequest) returns (OrderResponse);
+}
+
+message CreateProductRequest {
+  string name = 1;
+  int32 price = 2;
+  string description = 3;
+}
+
+message GetProductRequest {
+  int64 id = 1;
+}
+
+message Product {
+  int64 id = 1;
+  string name = 2;
+  int32 price = 3;
+  string description = 4;
+  string created_at = 5;
+}
+
+message ProductResponse {
+  Product product = 1;
+}
+
+message CreateTimeSaleRequest {
+  int64 product_id = 1;
+  int32 quantity = 2;
+  int32 discount_price = 3;
+  string start_at = 4;
+  string end_at = 5;
+}
+
+message GetTimeSaleRequest {
+  int64 id = 1;
+}
+
+message ListTimeSalesRequest {
+  int32 page = 1;
+  int32 size = 2;
+  string status = 3;
+}
+
+message TimeSale {
+  int64 id = 1;
+  int64 product_id = 2;
+  int32 quantity = 3;
+  int32 remaining_quantity = 4;
+  int32 discount_price = 5;
+  string start_at = 6;
+  string end_at = 7;
+  string status = 8;
+  Product product = 9;
+  string created_at = 10;
+}
+
+message TimeSaleResponse {
+  TimeSale timesale = 1;
+}
+
+message ListTimeSalesResponse {
+  repeated TimeSale timesales = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}
+
+message CreateOrderRequest {
+  int64 time_sale_id = 1;
+  int64 user_id = 2;
+  int32 quantity = 3;
+}
+
+message GetOrderRequest {
+  int64 id = 1;
+}
+
+message Order {
+  int64 id = 1;
+  int64 time_sale_id = 2;
+  int64 user_id = 3;
+  int32 quantity = 4;
+  string status = 5;
+  int32 queue_number = 6;
+  string created_at = 7;
+}
+
+message OrderResponse {
+  Order order = 1;
+}

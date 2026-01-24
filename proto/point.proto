@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package point;
+
+service PointService {
+  rpc EarnPoints (EarnPointsRequest) returns (PointResponse);
+  rpc UsePoints (UsePointsRequest) returns (PointResponse);
+  rpc CancelPoints (CancelPointsRequest) returns (PointResponse);
+  rpc GetBalance (GetBalanceRequest) returns (BalanceResponse);
+  rpc GetHistory (GetHistoryRequest) returns (GetHistoryResponse);
+}
+
+message EarnPointsRequest {
+  int64 user_id = 1;
+  int64 amount = 2;
+  string description = 3;
+}
+
+message UsePointsRequest {
+  int64 user_id = 1;
+  int64 amount = 2;
+  string description = 3;
+}
+
+message CancelPointsRequest {
+  int64 transaction_id = 1;
+  string description = 2;
+}
+
+message GetBalanceRequest {
+  int64 user_id = 1;
+}
+
+message GetHistoryRequest {
+  int64 user_id = 1;
+  int32 page = 2;
+  int32 size = 3;
+}
+
+message Point {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 amount = 3;
+  string type = 4;
+  string description = 5;
+  int64 balance_snapshot = 6;
+  string created_at = 7;
+}
+
+message PointResponse {
+  Point point = 1;
+}
+
+message BalanceResponse {
+  int64 user_id = 1;
+  int64 balance = 2;
+}
+
+message GetHistoryResponse {
+  repeated Point points = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 size = 4;
+}

@@ -1,11 +1,15 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class UseCouponDto {
-    @IsString()
-    @IsNotEmpty()
-    couponId: string;
+  @IsNotEmpty()
+  @IsNumber()
+  @Type(() => Number)
+  orderId!: number;
 
-    @IsString()
-    @IsNotEmpty()
-    orderId: string;
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  @Type(() => Number)
+  orderAmount!: number;
 }

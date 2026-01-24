@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TimeSaleController } from './timesale.controller';
+import { TimesaleGrpcController } from './timesale.grpc.controller';
 import { TimeSaleService } from './timesale.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
-    controllers: [TimeSaleController],
-    providers: [TimeSaleService, PrismaService],
+  controllers: [TimeSaleController, TimesaleGrpcController],
+  providers: [TimeSaleService, PrismaService],
+  exports: [TimeSaleService],
 })
-export class TimeSaleModule { }
+export class TimeSaleModule {}

@@ -1,145 +1,121 @@
 version: '3.8'
 
 services:
-  # Coupon Service
-  coupon-service:
-    image: promotion-system/coupon-service:latest
-    container_name: coupon-service
+  # API Gateway
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: api-gateway
     ports:
-      - "3001:3001"
+      - '4000:4000'
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - DATABASE_URL=mysql://root:password@mysql-coupon:3306/coupon_db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - KAFKA_BROKERS=kafka:9092
+      NODE_ENV: production
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:9093
+      ETCD_HOSTS: etcd:2379
     depends_on:
-      - mysql-coupon
       - redis
       - kafka
-    restart: unless-stopped
+      - etcd
+      - coupon-service
+      - point-service
+      - timesale-service
     networks:
       - promotion-network
+    restart: unless-stopped
+
+  # Coupon Service
+  coupon-service:
+    build:
+      context: .
+      dockerfile: apps/coupon-service/Dockerfile
+    container_name: coupon-service
+    ports:
+      - '3001:3001'
+      - '50051:50051'
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@postgres-coupon:5432/coupon_db?schema=public
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:9093
+      ETCD_HOSTS: etcd:2379
+      GRPC_PORT: 50051
+      SERVICE_HOST: coupon-service
+      SERVICE_PORT: 3001
+    depends_on:
+      - postgres-coupon
+      - redis
+      - kafka
+      - etcd
+    networks:
+      - promotion-network
+    restart: unless-stopped
 
   # Point Service
   point-service:
-    image: promotion-system/point-service:latest
+    build:
+      context: .
+      dockerfile: apps/point-service/Dockerfile
     container_name: point-service
     ports:
-      - "3002:3002"
+      - '3002:3002'
+      - '50052:50052'
     environment:
-      - NODE_ENV=production
-      - PORT=3002
-      - DATABASE_URL=mysql://root:password@mysql-point:3306/point_db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@postgres-point:5432/point_db?schema=public
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:9093
+      ETCD_HOSTS: etcd:2379
+      GRPC_PORT: 50052
+      SERVICE_HOST: point-service
+      SERVICE_PORT: 3002
     depends_on:
-      - mysql-point
-      - redis
-    restart: unless-stopped
-    networks:
-      - promotion-network
-
-  # Time Sale Service
-  timesale-service:
-    image: promotion-system/timesale-service:latest
-    container_name: timesale-service
-    ports:
-      - "3003:3003"
-    environment:
-      - NODE_ENV=production
-      - PORT=3003
-      - DATABASE_URL=mysql://root:password@mysql-timesale:3306/timesale_db
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - KAFKA_BROKERS=kafka:9092
-    depends_on:
-      - mysql-timesale
+      - postgres-point
       - redis
       - kafka
+      - etcd
+    networks:
+      - promotion-network
     restart: unless-stopped
-    networks:
-      - promotion-network
 
-  # MySQL - Coupon DB
-  mysql-coupon:
-    image: mysql:8.0
-    container_name: mysql-coupon
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: coupon_db
-    volumes:
-      - mysql-coupon-data:/var/lib/mysql
-    networks:
-      - promotion-network
-
-  # MySQL - Point DB
-  mysql-point:
-    image: mysql:8.0
-    container_name: mysql-point
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: point_db
-    volumes:
-      - mysql-point-data:/var/lib/mysql
-    networks:
-      - promotion-network
-
-  # MySQL - Time Sale DB
-  mysql-timesale:
-    image: mysql:8.0
-    container_name: mysql-timesale
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: timesale_db
-    volumes:
-      - mysql-timesale-data:/var/lib/mysql
-    networks:
-      - promotion-network
-
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: redis
+  # TimeSale Service
+  timesale-service:
+    build:
+      context: .
+      dockerfile: apps/timesale-service/Dockerfile
+    container_name: timesale-service
     ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    networks:
-      - promotion-network
-
-  # Kafka
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
+      - '3003:3003'
+      - '50053:50053'
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - promotion-network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:password@postgres-timesale:5432/timesale_db?schema=public
+      REDIS_HOST: redis
+      KAFKA_BROKERS: kafka:9093
+      ETCD_HOSTS: etcd:2379
+      GRPC_PORT: 50053
+      SERVICE_HOST: timesale-service
+      SERVICE_PORT: 3003
     depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      - postgres-timesale
+      - redis
+      - kafka
+      - etcd
     networks:
       - promotion-network
-
-volumes:
-  mysql-coupon-data:
-  mysql-point-data:
-  mysql-timesale-data:
-  redis-data:
+    restart: unless-stopped
 
 networks:
   promotion-network:
-    driver: bridge
+    external: true
+
+volumes:
+  postgres-coupon-data:
+  postgres-point-data:
+  postgres-timesale-data:
+  redis-data:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
+  etcd-data:
