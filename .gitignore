@@ -42,8 +42,9 @@ lerna-debug.log*
 .env.*.local
 
 # Prisma
-prisma/migrations/**/*.sql
+# prisma/migrations/**/*.sql  <-- Commented out to track migration history
 !prisma/migrations/migration_lock.toml
+**/generated/
 
 # Docker
 docker-compose.override.yml
@@ -52,3 +53,11 @@ docker-compose.override.yml
 *.tmp
 *.temp
 .cache
+
+# Build Info
+*.tsbuildinfo
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
