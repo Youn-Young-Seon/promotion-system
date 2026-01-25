@@ -49,17 +49,17 @@ cp apps/timesale-service/.env.example apps/timesale-service/.env
 
 **Coupon Service** (`.env`):
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/coupon_db?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5433/coupon_db?schema=public"
 ```
 
 **Point Service** (`.env`):
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5433/point_db?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5434/point_db?schema=public"
 ```
 
 **TimeSale Service** (`.env`):
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5434/timesale_db?schema=public"
+DATABASE_URL="postgresql://postgres:password@localhost:5435/timesale_db?schema=public"
 ```
 
 ## 4. 인프라 서비스 시작

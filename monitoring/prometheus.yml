@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['host.docker.internal:4000']
+    metrics_path: '/metrics'
+
+  # Coupon Service
+  - job_name: 'coupon-service'
+    static_configs:
+      - targets: ['host.docker.internal:3001']
+    metrics_path: '/metrics'
+
+  # Point Service
+  - job_name: 'point-service'
+    static_configs:
+      - targets: ['host.docker.internal:3002']
+    metrics_path: '/metrics'
+
+  # TimeSale Service
+  - job_name: 'timesale-service'
+    static_configs:
+      - targets: ['host.docker.internal:3003']
+    metrics_path: '/metrics'
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - '5432:5432'
+      - '5433:5432'
     volumes:
       - postgres-coupon-data:/var/lib/postgresql/data
     networks:
@@ -30,7 +30,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - '5433:5432'
+      - '5434:5432'
     volumes:
       - postgres-point-data:/var/lib/postgresql/data
     networks:
@@ -50,7 +50,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
-      - '5434:5432'
+      - '5435:5432'
     volumes:
       - postgres-timesale-data:/var/lib/postgresql/data
     networks:
@@ -152,6 +152,43 @@ services:
       timeout: 5s
       retries: 5
 
+  # Prometheus for Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - promotion-network
+    restart: unless-stopped
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - '3000:3000'
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - promotion-network
+    restart: unless-stopped
+
 networks:
   promotion-network:
     driver: bridge
@@ -165,3 +202,5 @@ volumes:
   zookeeper-logs:
   kafka-data:
   etcd-data:
+  prometheus-data:
+  grafana-data:

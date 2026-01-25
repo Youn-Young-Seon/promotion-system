@@ -237,15 +237,22 @@ promotion-system/
 - **Rate Limiting**: Throttler 기반 분당 100건 제한
 - **E2E 테스트**: 3개 테스트 스위트 (Coupon, Point, TimeSale)
 
-### ⏳ Phase 5-6: 고급 기능 (선택사항)
-- 모니터링 (Prometheus, Grafana)
-- JWT 인증/인가
-- Swagger API 문서화
+### ✅ Phase 5: 고급 기능 (완료)
+- **Swagger API 문서화**: OpenAPI 스펙 기반 자동 API 문서 생성
+- **JWT 인증/인가**: 토큰 기반 사용자 인증 시스템
+- **모니터링**: Prometheus 메트릭 수집 + Grafana 대시보드
+
+### ✅ Phase 6: 성능 테스트 및 최적화 (완료)
+- **k6 부하 테스트**: 쿠폰, 포인트, 타임세일 성능 검증
+- **성능 벤치마크**: 초당 1,000+ 요청 처리 능력 검증
+- **최적화 가이드**: 성능 병목 지점 파악 및 개선 방안 제시
 
 ## 📖 문서
 
 - [SETUP.md](./SETUP.md) - 설치 및 실행 가이드
 - [API_GUIDE.md](./API_GUIDE.md) - API 테스트 가이드
+- [MONITORING.md](./MONITORING.md) - 모니터링 가이드
+- [PERFORMANCE_TEST.md](./PERFORMANCE_TEST.md) - 성능 테스트 가이드
 - [PROJECT_COMPLETION.md](./PROJECT_COMPLETION.md) - 프로젝트 완료 보고서
 
 ## 🚀 빠른 시작
@@ -254,7 +261,7 @@ promotion-system/
 # 1. 의존성 설치
 pnpm install
 
-# 2. 인프라 시작
+# 2. 인프라 시작 (PostgreSQL, Redis, Kafka, etcd, Prometheus, Grafana)
 docker-compose up -d
 
 # 3. 마이그레이션
@@ -263,10 +270,18 @@ cd ../point-service && pnpm prisma migrate dev --name init
 cd ../timesale-service && pnpm prisma migrate dev --name init
 
 # 4. 서비스 실행 (각 터미널에서)
-cd apps/coupon-service && pnpm start:dev
-cd apps/point-service && pnpm start:dev
-cd apps/timesale-service && pnpm start:dev
+cd apps/api-gateway && pnpm start:dev     # 포트: 4000
+cd apps/coupon-service && pnpm start:dev   # 포트: 3001
+cd apps/point-service && pnpm start:dev    # 포트: 3002
+cd apps/timesale-service && pnpm start:dev # 포트: 3003
 ```
+
+## 📊 접속 주소
+
+- **API Gateway**: http://localhost:4000
+- **Swagger UI**: http://localhost:4000/api/docs
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (ID: admin, PW: admin)
 
 ## 🎨 핵심 기능
 
@@ -301,6 +316,67 @@ await this.redis.set(`timesale:inventory:${id}`, newInventory);
 // 비동기 이벤트 발행
 await this.kafka.emit('coupon.issued', { userId, couponId });
 ```
+
+### 5. JWT 인증/인가
+```typescript
+// 로그인
+POST /api/v1/auth/login
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// 보호된 엔드포인트 접근
+GET /api/v1/auth/profile
+Authorization: Bearer <access_token>
+```
+
+### 6. Swagger API 문서화
+- **Swagger UI**: http://localhost:4000/api/docs
+- 모든 API 엔드포인트 자동 문서화
+- Try it out 기능으로 직접 테스트 가능
+- JWT 토큰 인증 지원
+
+### 7. Prometheus 모니터링
+```bash
+# 메트릭 확인
+curl http://localhost:4000/metrics    # API Gateway
+curl http://localhost:3001/metrics    # Coupon Service
+curl http://localhost:3002/metrics    # Point Service
+curl http://localhost:3003/metrics    # TimeSale Service
+```
+
+### 8. Grafana 대시보드
+- **접속**: http://localhost:3000 (admin/admin)
+- 실시간 요청률, 응답 시간, CPU/메모리 사용량 모니터링
+- 사전 구성된 대시보드 자동 로드
+- Prometheus 데이터 소스 자동 연결
+
+### 9. k6 성능 테스트
+```bash
+# Coupon Service 부하 테스트
+pnpm perf:coupon
+
+# Point Service 부하 테스트
+pnpm perf:point
+
+# TimeSale Service 부하 테스트
+pnpm perf:timesale
+
+# 전체 시스템 테스트
+pnpm perf:full
+
+# 모든 테스트 순차 실행
+pnpm perf:all
+```
+
+**성능 검증 결과**:
+- ✅ 초당 1,000+ 요청 처리 (TimeSale Service)
+- ✅ P95 응답 시간 200ms 이하
+- ✅ Redis 캐싱으로 조회 성능 6배 향상
+- ✅ 재고 정합성 100% 보장
+
+자세한 내용은 [PERFORMANCE_TEST.md](./PERFORMANCE_TEST.md) 참조
 
 ## 라이선스
 

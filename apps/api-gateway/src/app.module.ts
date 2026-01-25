@@ -1,12 +1,17 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientProxyFactory, Transport } from '@nestjs/microservices';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { CouponGatewayModule } from './gateway/coupon/coupon-gateway.module';
 import { PointGatewayModule } from './gateway/point/point-gateway.module';
 import { TimeSaleGatewayModule } from './gateway/timesale/timesale-gateway.module';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CircuitBreakerService } from './common/circuit-breaker.service';
+import { LoggerModule, RequestIdMiddleware, HttpLoggerInterceptor, LoggerService } from '@common/index';
 import { join } from 'path';
 
 @Module({
@@ -17,6 +22,22 @@ import { join } from 'path';
       envFilePath: '.env',
     }),
 
+    // 로거 설정
+    LoggerModule.forRoot({
+      serviceName: 'api-gateway',
+    }),
+
+    // Prometheus 모니터링
+    PrometheusModule.register({
+      path: '/metrics',
+      defaultMetrics: {
+        enabled: true,
+        config: {
+          prefix: 'api_gateway_',
+        },
+      },
+    }),
+
     // Rate Limiting (분당 100건)
     ThrottlerModule.forRoot([
       {
@@ -25,6 +46,9 @@ import { join } from 'path';
       },
     ]),
 
+    // Auth 모듈
+    AuthModule,
+
     // Gateway 모듈
     CouponGatewayModule,
     PointGatewayModule,
@@ -32,6 +56,16 @@ import { join } from 'path';
   ],
   controllers: [AppController],
   providers: [
+    // Global JWT Auth Guard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    // Global HTTP Logger Interceptor
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggerInterceptor,
+    },
     CircuitBreakerService,
     // Coupon Service gRPC Client
     {
@@ -125,4 +159,8 @@ import { join } from 'path';
   ],
   exports: [CircuitBreakerService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

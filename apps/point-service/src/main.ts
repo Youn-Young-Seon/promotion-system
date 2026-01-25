@@ -1,12 +1,18 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { LoggerService } from '@common/index';
 import { join } from 'path';
 
 async function bootstrap(): Promise<void> {
-  const logger = new Logger('PointService');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  const logger = app.get(LoggerService);
+  logger.setContext('Bootstrap');
+  app.useLogger(logger);
 
   const httpPort = process.env.SERVICE_PORT ?? 3002;
   const grpcPort = process.env.GRPC_PORT ?? 50052;
