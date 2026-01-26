@@ -5,9 +5,9 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
-import { CouponGatewayModule } from './gateway/coupon/coupon-gateway.module';
-import { PointGatewayModule } from './gateway/point/point-gateway.module';
-import { TimeSaleGatewayModule } from './gateway/timesale/timesale-gateway.module';
+import { CouponPolicyController, CouponController } from './gateway/coupon/coupon-gateway.controller';
+import { PointController } from './gateway/point/point-gateway.controller';
+import { ProductController, TimeSaleController, OrderController } from './gateway/timesale/timesale-gateway.controller';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CircuitBreakerService } from './common/circuit-breaker.service';
@@ -48,13 +48,19 @@ import { join } from 'path';
 
     // Auth 모듈
     AuthModule,
-
-    // Gateway 모듈
-    CouponGatewayModule,
-    PointGatewayModule,
-    TimeSaleGatewayModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    // Coupon Controllers
+    CouponPolicyController,
+    CouponController,
+    // Point Controller
+    PointController,
+    // TimeSale Controllers
+    ProductController,
+    TimeSaleController,
+    OrderController,
+  ],
   providers: [
     // Global JWT Auth Guard
     {

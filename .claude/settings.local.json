@@ -5,7 +5,16 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebSearch",
       "Bash(pnpm add:*)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(timeout 10 pnpm run start:dev:*)",
+      "Bash(pnpm prisma:generate:*)",
+      "Bash(npx prisma:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(timeout 15 pnpm run start:dev:*)",
+      "Bash(pnpm run start:dev:*)",
+      "Bash(docker-compose stop:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(timeout 10 pnpm dev:gateway:*)"
     ]
   }
 }

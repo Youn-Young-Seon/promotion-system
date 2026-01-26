@@ -116,14 +116,14 @@ pnpm prisma:generate
 ### 개발 모드 실행
 
 ```bash
-# 모든 서비스 동시 실행
-pnpm start:dev
+# 모든 서비스 동시 실행 (권장 - concurrently 사용)
+pnpm dev:all
 
 # 또는 개별 서비스 실행
-pnpm --filter api-gateway start:dev
-pnpm --filter coupon-service start:dev
-pnpm --filter point-service start:dev
-pnpm --filter timesale-service start:dev
+pnpm dev:gateway      # API Gateway (포트: 4000)
+pnpm dev:coupon       # Coupon Service (포트: 3001)
+pnpm dev:point        # Point Service (포트: 3002)
+pnpm dev:timesale     # TimeSale Service (포트: 3003)
 ```
 
 ### 빌드
@@ -269,11 +269,15 @@ cd apps/coupon-service && pnpm prisma migrate dev --name init
 cd ../point-service && pnpm prisma migrate dev --name init
 cd ../timesale-service && pnpm prisma migrate dev --name init
 
-# 4. 서비스 실행 (각 터미널에서)
-cd apps/api-gateway && pnpm start:dev     # 포트: 4000
-cd apps/coupon-service && pnpm start:dev   # 포트: 3001
-cd apps/point-service && pnpm start:dev    # 포트: 3002
-cd apps/timesale-service && pnpm start:dev # 포트: 3003
+# 4. 서비스 실행
+# 모든 서비스를 한번에 실행 (권장)
+pnpm dev:all
+
+# 또는 개별 실행
+pnpm dev:gateway      # API Gateway (포트: 4000)
+pnpm dev:coupon       # Coupon Service (포트: 3001)
+pnpm dev:point        # Point Service (포트: 3002)
+pnpm dev:timesale     # TimeSale Service (포트: 3003)
 ```
 
 ## 📊 접속 주소

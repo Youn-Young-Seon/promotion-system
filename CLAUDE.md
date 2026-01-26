@@ -30,15 +30,14 @@ cd apps/timesale-service && pnpm prisma migrate dev --name init
 # Generate Prisma clients
 pnpm prisma:generate
 
-# Run all services (each in separate terminal)
-cd apps/api-gateway && pnpm start:dev
-cd apps/coupon-service && pnpm start:dev
-cd apps/point-service && pnpm start:dev
-cd apps/timesale-service && pnpm start:dev
+# Run all services at once (recommended - uses concurrently)
+pnpm dev:all
 
-# Or run individual service
-pnpm --filter api-gateway start:dev
-pnpm --filter coupon-service start:dev
+# Or run individual services
+pnpm dev:gateway      # API Gateway only (port 4000)
+pnpm dev:coupon       # Coupon Service only (port 3001)
+pnpm dev:point        # Point Service only (port 3002)
+pnpm dev:timesale     # TimeSale Service only (port 3003)
 ```
 
 ### Testing
@@ -278,7 +277,7 @@ When modifying database schemas:
 - TimeSale Service: `http://localhost:3003/metrics`
 
 ### Grafana Dashboard
-- Access: `http://localhost:3000` (admin/admin)
+- Access: `http://localhost:3100` (admin/admin)
 - Pre-configured dashboard auto-loads from `monitoring/dashboards/`
 - Tracks: request rate, response time, CPU/memory, error rate
 
@@ -351,14 +350,14 @@ Infrastructure services:
 - Kafka + Zookeeper: port 9092
 - etcd: port 2379
 - Prometheus: port 9090
-- Grafana: port 3000
+- Grafana: port 3100
 
 ## Important URLs
 
 - API Gateway: http://localhost:4000
 - Swagger UI: http://localhost:4000/api/docs
 - Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+- Grafana: http://localhost:3100 (admin/admin)
 
 ## Troubleshooting
 
