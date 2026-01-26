@@ -5,12 +5,11 @@ import {
   Body,
   Param,
   Query,
-  Inject,
   OnModuleInit,
 } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
 
 interface CouponService {
   createCouponPolicy(data: any): any;
@@ -27,10 +26,11 @@ interface CouponService {
 export class CouponPolicyController implements OnModuleInit {
   private couponService: CouponService;
 
-  constructor(@Inject('COUPON_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.couponService = this.client.getService<CouponService>('CouponService');
+    const client = this.dynamicGrpcClient.getCouponClient();
+    this.couponService = client.getService<CouponService>('CouponService');
   }
 
   @Post()
@@ -75,10 +75,11 @@ export class CouponPolicyController implements OnModuleInit {
 export class CouponController implements OnModuleInit {
   private couponService: CouponService;
 
-  constructor(@Inject('COUPON_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.couponService = this.client.getService<CouponService>('CouponService');
+    const client = this.dynamicGrpcClient.getCouponClient();
+    this.couponService = client.getService<CouponService>('CouponService');
   }
 
   @Post('issue')

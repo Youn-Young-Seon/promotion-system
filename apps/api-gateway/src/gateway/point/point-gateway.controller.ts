@@ -5,12 +5,11 @@ import {
   Body,
   Param,
   Query,
-  Inject,
   OnModuleInit,
 } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
 
 interface PointService {
   earnPoints(data: any): any;
@@ -25,10 +24,11 @@ interface PointService {
 export class PointController implements OnModuleInit {
   private pointService: PointService;
 
-  constructor(@Inject('POINT_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.pointService = this.client.getService<PointService>('PointService');
+    const client = this.dynamicGrpcClient.getPointClient();
+    this.pointService = client.getService<PointService>('PointService');
   }
 
   @Post('earn')

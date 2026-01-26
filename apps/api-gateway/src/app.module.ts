@@ -1,6 +1,5 @@
 import { Module, MiddlewareConsumer } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientProxyFactory, Transport } from '@nestjs/microservices';
+import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -11,8 +10,8 @@ import { ProductController, TimeSaleController, OrderController } from './gatewa
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CircuitBreakerService } from './common/circuit-breaker.service';
-import { LoggerModule, RequestIdMiddleware, HttpLoggerInterceptor, LoggerService } from '@common/index';
-import { join } from 'path';
+import { DynamicGrpcClientService } from './common/dynamic-grpc-client.service';
+import { EtcdModule, LoggerModule, RequestIdMiddleware, HttpLoggerInterceptor } from '@common/index';
 
 @Module({
   imports: [
@@ -48,6 +47,9 @@ import { join } from 'path';
 
     // Auth 모듈
     AuthModule,
+
+    // etcd 서비스 디스커버리
+    EtcdModule,
   ],
   controllers: [
     AppController,
@@ -73,97 +75,9 @@ import { join } from 'path';
       useClass: HttpLoggerInterceptor,
     },
     CircuitBreakerService,
-    // Coupon Service gRPC Client
-    {
-      provide: 'COUPON_SERVICE',
-      useFactory: (configService: ConfigService) => {
-        const host = configService.get<string>(
-          'COUPON_SERVICE_HOST',
-          'localhost',
-        );
-        const port = configService.get<number>('COUPON_SERVICE_GRPC_PORT', 50051);
-
-        return ClientProxyFactory.create({
-          transport: Transport.GRPC,
-          options: {
-            package: 'coupon',
-            protoPath: join(__dirname, '../../../proto/coupon.proto'),
-            url: `${host}:${port}`,
-            loader: {
-              keepCase: true,
-              longs: String,
-              enums: String,
-              defaults: true,
-              oneofs: true,
-            },
-          },
-        });
-      },
-      inject: [ConfigService],
-    },
-
-    // Point Service gRPC Client
-    {
-      provide: 'POINT_SERVICE',
-      useFactory: (configService: ConfigService) => {
-        const host = configService.get<string>(
-          'POINT_SERVICE_HOST',
-          'localhost',
-        );
-        const port = configService.get<number>('POINT_SERVICE_GRPC_PORT', 50052);
-
-        return ClientProxyFactory.create({
-          transport: Transport.GRPC,
-          options: {
-            package: 'point',
-            protoPath: join(__dirname, '../../../proto/point.proto'),
-            url: `${host}:${port}`,
-            loader: {
-              keepCase: true,
-              longs: String,
-              enums: String,
-              defaults: true,
-              oneofs: true,
-            },
-          },
-        });
-      },
-      inject: [ConfigService],
-    },
-
-    // TimeSale Service gRPC Client
-    {
-      provide: 'TIMESALE_SERVICE',
-      useFactory: (configService: ConfigService) => {
-        const host = configService.get<string>(
-          'TIMESALE_SERVICE_HOST',
-          'localhost',
-        );
-        const port = configService.get<number>(
-          'TIMESALE_SERVICE_GRPC_PORT',
-          50053,
-        );
-
-        return ClientProxyFactory.create({
-          transport: Transport.GRPC,
-          options: {
-            package: 'timesale',
-            protoPath: join(__dirname, '../../../proto/timesale.proto'),
-            url: `${host}:${port}`,
-            loader: {
-              keepCase: true,
-              longs: String,
-              enums: String,
-              defaults: true,
-              oneofs: true,
-            },
-          },
-        });
-      },
-      inject: [ConfigService],
-    },
+    DynamicGrpcClientService,
   ],
-  exports: [CircuitBreakerService],
+  exports: [CircuitBreakerService, DynamicGrpcClientService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

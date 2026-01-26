@@ -14,7 +14,9 @@
       "Bash(pnpm run start:dev:*)",
       "Bash(docker-compose stop:*)",
       "Bash(docker-compose up:*)",
-      "Bash(timeout 10 pnpm dev:gateway:*)"
+      "Bash(timeout 10 pnpm dev:gateway:*)",
+      "Bash(pnpm build:*)",
+      "Bash(Select-String -Pattern \"ERROR|Successfully\")"
     ]
   }
 }

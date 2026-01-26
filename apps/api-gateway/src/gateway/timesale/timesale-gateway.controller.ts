@@ -5,12 +5,11 @@ import {
   Body,
   Param,
   Query,
-  Inject,
   OnModuleInit,
 } from '@nestjs/common';
-import { ClientGrpc } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { firstValueFrom } from 'rxjs';
+import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
 
 interface TimeSaleService {
   createProduct(data: any): any;
@@ -27,11 +26,11 @@ interface TimeSaleService {
 export class ProductController implements OnModuleInit {
   private timeSaleService: TimeSaleService;
 
-  constructor(@Inject('TIMESALE_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.timeSaleService =
-      this.client.getService<TimeSaleService>('TimeSaleService');
+    const client = this.dynamicGrpcClient.getTimeSaleClient();
+    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()
@@ -59,11 +58,11 @@ export class ProductController implements OnModuleInit {
 export class TimeSaleController implements OnModuleInit {
   private timeSaleService: TimeSaleService;
 
-  constructor(@Inject('TIMESALE_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.timeSaleService =
-      this.client.getService<TimeSaleService>('TimeSaleService');
+    const client = this.dynamicGrpcClient.getTimeSaleClient();
+    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()
@@ -111,11 +110,11 @@ export class TimeSaleController implements OnModuleInit {
 export class OrderController implements OnModuleInit {
   private timeSaleService: TimeSaleService;
 
-  constructor(@Inject('TIMESALE_SERVICE') private client: ClientGrpc) {}
+  constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
   onModuleInit() {
-    this.timeSaleService =
-      this.client.getService<TimeSaleService>('TimeSaleService');
+    const client = this.dynamicGrpcClient.getTimeSaleClient();
+    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()

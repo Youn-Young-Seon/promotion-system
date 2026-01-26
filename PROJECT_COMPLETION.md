@@ -561,17 +561,58 @@ stages: [
 
 ---
 
+---
+
+## ✅ Phase 7: etcd 서비스 디스커버리 (완료)
+
+### 1. etcd 통합
+- ✅ EtcdModule 구현 (서비스 등록, 발견, 감시)
+- ✅ 모든 마이크로서비스에 자동 등록 기능 추가
+- ✅ Lease 기반 TTL (10초)
+- ✅ Keep-alive 자동 갱신
+
+### 2. 동적 서비스 발견
+- ✅ DynamicGrpcClientService 구현
+- ✅ API Gateway에서 etcd 기반 서비스 발견
+- ✅ 자동 gRPC 클라이언트 생성 및 관리
+- ✅ 서비스 변경 시 자동 재연결
+
+### 3. 서비스 감시
+- ✅ etcd watch를 통한 실시간 서비스 변경 감지
+- ✅ 서비스 인스턴스 추가/제거 시 자동 대응
+- ✅ 장애 격리 및 자동 복구
+
+### 4. 아키텍처 개선
+**이전 (정적 설정):**
+```
+API Gateway → 환경 변수 → 고정 gRPC 엔드포인트
+```
+
+**현재 (동적 발견):**
+```
+API Gateway → etcd 조회 → 동적 gRPC 엔드포인트
+                 ↓
+            실시간 감시 → 자동 재연결
+```
+
+### 5. 주요 파일
+- `libs/common/src/etcd/etcd.service.ts`: etcd 클라이언트 관리
+- `libs/common/src/etcd/etcd.module.ts`: EtcdModule
+- `apps/api-gateway/src/common/dynamic-grpc-client.service.ts`: 동적 gRPC 클라이언트
+- `ETCD_INTEGRATION_GUIDE.md`: etcd 사용 가이드
+
+---
+
 ## ⚠️ 알려진 제약사항
 
 ### 미구현 기능
 
-1. **서비스 디스커버리**
-   - etcd 통합 미완성
-   - 자동 서비스 등록/발견
+1. **로그 수집**
+   - ELK Stack (Elasticsearch, Logstash, Kibana)
 
-2. **로그 및 추적**
-   - 로그 수집 (ELK Stack)
-   - 분산 추적 (Jaeger, Zipkin)
+2. **분산 추적**
+   - Jaeger 또는 Zipkin 통합
+   - 서비스 간 요청 추적
 
 ### 개선 필요 사항
 
@@ -597,29 +638,32 @@ stages: [
 
 ## 📈 향후 계획
 
-### Phase 7: 서비스 디스커버리 (예정)
+### Phase 8: 분산 추적 시스템 (예정)
 
-- [ ] etcd 통합 완료
-- [ ] 자동 서비스 등록/발견
-- [ ] 동적 서비스 라우팅
+- [ ] Jaeger 또는 Zipkin 통합
+- [ ] 분산 추적 컨텍스트 전파
+- [ ] 트레이스 시각화 대시보드
+- [ ] 성능 병목 지점 자동 분석
 
-### Phase 8: 로그 및 추적 (예정)
+### Phase 9: 로그 수집 및 분석 (예정)
 
-- [ ] ELK Stack (Elasticsearch, Logstash, Kibana)
-- [ ] 분산 추적 (Jaeger 또는 Zipkin)
-- [ ] 로그 집계 및 분석
+- [ ] ELK Stack (Elasticsearch, Logstash, Kibana) 구축
+- [ ] 중앙화된 로그 집계
+- [ ] 로그 검색 및 분석 대시보드
+- [ ] 알림 및 이상 탐지
 
-### Phase 9: 테스트 자동화 확대 (예정)
+### Phase 10: 테스트 자동화 확대 (예정)
 
 - [ ] Jest 단위 테스트 확대
 - [ ] 통합 테스트 추가
 - [ ] 성능 테스트 자동화 (CI/CD 통합)
 
-### Phase 10: 배포 자동화 (예정)
+### Phase 11: 배포 자동화 (예정)
 
 - [ ] GitHub Actions CI/CD
 - [ ] Docker Registry
 - [ ] Kubernetes Deployment
+- [ ] 무중단 배포 (Blue-Green, Canary)
 
 ---
 
@@ -652,6 +696,8 @@ stages: [
 - ✅ 마이크로서비스
 - ✅ 이벤트 드리븐 (Kafka)
 - ✅ 공통 라이브러리
+- ✅ 서비스 디스커버리 (etcd)
+- ✅ 동적 라우팅
 
 ---
 
@@ -660,6 +706,10 @@ stages: [
 - `README.md`: 프로젝트 개요
 - `SETUP.md`: 설치 및 실행 가이드
 - `API_GUIDE.md`: API 테스트 가이드
+- `LOGGING.md`: 로깅 시스템 가이드
+- `MONITORING.md`: 모니터링 가이드
+- `PERFORMANCE_TEST.md`: 성능 테스트 가이드
+- `ETCD_INTEGRATION_GUIDE.md`: etcd 서비스 디스커버리 가이드
 - `PROJECT_COMPLETION.md`: 본 문서
 
 ---
@@ -673,6 +723,8 @@ stages: [
 - ✅ API Gateway (gRPC, Circuit Breaker, Rate Limiting)
 - ✅ Redis 기반 성능 최적화
 - ✅ Kafka 이벤트 드리븐 아키텍처
+- ✅ etcd 서비스 디스커버리 (동적 서비스 발견 및 자동 재연결)
+- ✅ Winston 기반 구조화된 로깅 시스템
 - ✅ JWT 인증/인가 시스템
 - ✅ Swagger API 문서화
 - ✅ Prometheus + Grafana 모니터링
@@ -699,6 +751,6 @@ stages: [
 
 ---
 
-**작성일**: 2026-01-25
+**작성일**: 2026-01-26
 **작성자**: Claude (Sonnet 4.5)
-**버전**: 3.0.0
+**버전**: 4.0.0

@@ -247,12 +247,20 @@ promotion-system/
 - **성능 벤치마크**: 초당 1,000+ 요청 처리 능력 검증
 - **최적화 가이드**: 성능 병목 지점 파악 및 개선 방안 제시
 
+### ✅ Phase 7: etcd 서비스 디스커버리 (완료)
+- **etcd 통합**: 모든 마이크로서비스 자동 등록 (Lease 기반 TTL)
+- **동적 서비스 발견**: API Gateway에서 etcd를 통한 동적 엔드포인트 조회
+- **실시간 감시**: 서비스 변경 시 자동 재연결
+- **구조화된 로깅**: Winston 기반 로깅 시스템 (요청 ID 추적, 일별 로그 로테이션)
+
 ## 📖 문서
 
 - [SETUP.md](./SETUP.md) - 설치 및 실행 가이드
 - [API_GUIDE.md](./API_GUIDE.md) - API 테스트 가이드
+- [LOGGING.md](./LOGGING.md) - 로깅 시스템 가이드
 - [MONITORING.md](./MONITORING.md) - 모니터링 가이드
 - [PERFORMANCE_TEST.md](./PERFORMANCE_TEST.md) - 성능 테스트 가이드
+- [ETCD_INTEGRATION_GUIDE.md](./ETCD_INTEGRATION_GUIDE.md) - etcd 서비스 디스커버리 가이드
 - [PROJECT_COMPLETION.md](./PROJECT_COMPLETION.md) - 프로젝트 완료 보고서
 
 ## 🚀 빠른 시작

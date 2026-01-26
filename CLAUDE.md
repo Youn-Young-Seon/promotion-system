@@ -161,10 +161,17 @@ promotion-system/
 - **Kafka Module** (`libs/common/src/kafka/`):
   - `emit(topic, data)`: Fire-and-forget event publishing
   - Events: `coupon.issued`, `point.earned`, `order.created`
+- **etcd Module** (`libs/common/src/etcd/`):
+  - `registerService()`: Register service to etcd with TTL (10 seconds)
+  - `discoverService()`: Discover service instances from etcd
+  - `watchService()`: Watch for service changes (add/remove instances)
+  - Used by all microservices for auto-registration
+  - Used by API Gateway for dynamic service discovery
 - **gRPC Communication**:
   - Proto files in `proto/*.proto` define service contracts
   - Generated TypeScript clients in `apps/*/src/generated/client/`
-  - API Gateway uses gRPC clients to call services
+  - API Gateway uses dynamic gRPC clients via `DynamicGrpcClientService`
+  - Service endpoints are discovered from etcd (not hardcoded)
   - Each service exposes both REST (for direct access) and gRPC servers
 
 ## Critical Implementation Patterns
@@ -223,6 +230,40 @@ API Gateway implements JWT-based authentication:
 - `/api/v1/auth/login` - Returns access_token and refresh_token
 - Protected routes require `Authorization: Bearer <token>` header
 - Use `@UseGuards(JwtAuthGuard)` on protected endpoints
+
+### etcd Service Discovery (All Services)
+Each microservice automatically registers to etcd on startup:
+```typescript
+// apps/coupon-service/src/main.ts
+const etcdService = app.get(EtcdService);
+await etcdService.registerService(serviceName, {
+  host: serviceHost,
+  port: Number(grpcPort),
+  protocol: 'grpc',
+});
+```
+
+**Environment Variables** (required for each service):
+```env
+SERVICE_NAME=coupon-service    # Service identifier
+SERVICE_HOST=localhost         # Host address
+GRPC_PORT=50051               # gRPC server port
+ETCD_HOSTS=localhost:2379     # etcd endpoints
+```
+
+**API Gateway Discovery**:
+```typescript
+// apps/api-gateway/src/common/dynamic-grpc-client.service.ts
+const instances = await this.etcdService.discoverService('coupon-service');
+const client = ClientProxyFactory.create({ url: `${instances[0].host}:${instances[0].port}` });
+```
+
+**Key Features**:
+- Automatic service registration with 10-second TTL
+- Lease keep-alive for continuous availability
+- Real-time service change detection via etcd watch
+- Automatic gRPC client reconnection when services restart
+- No hardcoded service endpoints
 
 ## Prisma Workflow
 

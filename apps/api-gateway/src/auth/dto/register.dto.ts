@@ -7,7 +7,7 @@ export class RegisterDto {
     example: 'user@example.com',
   })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: '사용자 이름',
@@ -18,7 +18,7 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   @MaxLength(50)
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: '비밀번호 (최소 6자)',
@@ -27,5 +27,5 @@ export class RegisterDto {
   })
   @IsString()
   @MinLength(6)
-  password: string;
+  password!: string;
 }
