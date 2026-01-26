@@ -1,10 +1,11 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
-import { TimesaleService } from './timesale.service';
+import { TimeSaleService } from './timesale.service';
+import { TimeSale } from '../../prisma/generated/client';
 
 @Controller()
 export class TimesaleGrpcController {
-  constructor(private readonly timesaleService: TimesaleService) {}
+  constructor(private readonly timesaleService: TimeSaleService) {}
 
   @GrpcMethod('TimeSaleService', 'CreateTimeSale')
   async createTimeSale(data: {
@@ -74,7 +75,7 @@ export class TimesaleGrpcController {
       data.size,
     );
     return {
-      timesales: timesales.map((timesale) => ({
+      timesales: timesales.map((timesale: TimeSale & { product?: { id: bigint; name: string; price: number; description: string | null } | null }) => ({
         id: Number(timesale.id),
         productId: Number(timesale.productId),
         quantity: timesale.quantity,

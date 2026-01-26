@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Query,
-  OnModuleInit,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
@@ -45,14 +44,12 @@ interface CouponService {
 
 @ApiTags('Coupon')
 @Controller('coupon-policies')
-export class CouponPolicyController implements OnModuleInit {
-  private couponService!: CouponService;
-
+export class CouponPolicyController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getCouponService(): CouponService {
     const client = this.dynamicGrpcClient.getCouponClient();
-    this.couponService = client.getService<CouponService>('CouponService');
+    return client.getService<CouponService>('CouponService');
   }
 
   @Post()
@@ -60,7 +57,7 @@ export class CouponPolicyController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '쿠폰 정책이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
   async createCouponPolicy(@Body() dto: CouponPolicyRequest) {
-    return await firstValueFrom(this.couponService.createCouponPolicy(dto));
+    return await firstValueFrom(this.getCouponService().createCouponPolicy(dto));
   }
 
   @Get(':id')
@@ -70,7 +67,7 @@ export class CouponPolicyController implements OnModuleInit {
   @ApiResponse({ status: 404, description: '쿠폰 정책을 찾을 수 없습니다.' })
   async getCouponPolicy(@Param('id') id: string) {
     return await firstValueFrom(
-      this.couponService.getCouponPolicy({ id: parseInt(id, 10) }),
+      this.getCouponService().getCouponPolicy({ id: parseInt(id, 10) }),
     );
   }
 
@@ -84,7 +81,7 @@ export class CouponPolicyController implements OnModuleInit {
     @Query('size') size = 10,
   ) {
     return await firstValueFrom(
-      this.couponService.listCouponPolicies({
+      this.getCouponService().listCouponPolicies({
         page: parseInt(String(page), 10),
         size: parseInt(String(size), 10),
       }),
@@ -94,14 +91,12 @@ export class CouponPolicyController implements OnModuleInit {
 
 @ApiTags('Coupon')
 @Controller('coupons')
-export class CouponController implements OnModuleInit {
-  private couponService!: CouponService;
-
+export class CouponController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getCouponService(): CouponService {
     const client = this.dynamicGrpcClient.getCouponClient();
-    this.couponService = client.getService<CouponService>('CouponService');
+    return client.getService<CouponService>('CouponService');
   }
 
   @Post('issue')
@@ -109,7 +104,7 @@ export class CouponController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '쿠폰이 성공적으로 발급되었습니다.' })
   @ApiResponse({ status: 400, description: '발급 가능한 쿠폰이 없습니다.' })
   async issueCoupon(@Body() dto: IssueCouponRequest) {
-    return await firstValueFrom(this.couponService.issueCoupon(dto));
+    return await firstValueFrom(this.getCouponService().issueCoupon(dto));
   }
 
   @Post(':id/use')
@@ -119,7 +114,7 @@ export class CouponController implements OnModuleInit {
   @ApiResponse({ status: 400, description: '쿠폰을 사용할 수 없습니다.' })
   async useCoupon(@Param('id') id: string, @Body() dto: UseCouponRequest) {
     return await firstValueFrom(
-      this.couponService.useCoupon({ id: parseInt(id, 10), ...dto }),
+      this.getCouponService().useCoupon({ id: parseInt(id, 10), ...dto }),
     );
   }
 
@@ -130,7 +125,7 @@ export class CouponController implements OnModuleInit {
   @ApiResponse({ status: 400, description: '쿠폰을 취소할 수 없습니다.' })
   async cancelCoupon(@Param('id') id: string) {
     return await firstValueFrom(
-      this.couponService.cancelCoupon({ id: parseInt(id, 10) }),
+      this.getCouponService().cancelCoupon({ id: parseInt(id, 10) }),
     );
   }
 
@@ -140,7 +135,7 @@ export class CouponController implements OnModuleInit {
   @ApiResponse({ status: 200, description: '사용자 쿠폰 목록 조회 성공' })
   async getUserCoupons(@Param('userId') userId: string) {
     return await firstValueFrom(
-      this.couponService.getUserCoupons({ userId: parseInt(userId, 10) }),
+      this.getCouponService().getUserCoupons({ userId: parseInt(userId, 10) }),
     );
   }
 }

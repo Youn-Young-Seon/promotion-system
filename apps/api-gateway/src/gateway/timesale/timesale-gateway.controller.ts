@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Query,
-  OnModuleInit,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
@@ -44,14 +43,12 @@ interface TimeSaleService {
 
 @ApiTags('TimeSale')
 @Controller('products')
-export class ProductController implements OnModuleInit {
-  private timeSaleService!: TimeSaleService;
-
+export class ProductController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getTimeSaleService(): TimeSaleService {
     const client = this.dynamicGrpcClient.getTimeSaleClient();
-    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
+    return client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()
@@ -59,7 +56,7 @@ export class ProductController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '상품이 성공적으로 등록되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
   async createProduct(@Body() dto: CreateProductRequest) {
-    return await firstValueFrom(this.timeSaleService.createProduct(dto));
+    return await firstValueFrom(this.getTimeSaleService().createProduct(dto));
   }
 
   @Get(':id')
@@ -69,21 +66,19 @@ export class ProductController implements OnModuleInit {
   @ApiResponse({ status: 404, description: '상품을 찾을 수 없습니다.' })
   async getProduct(@Param('id') id: string) {
     return await firstValueFrom(
-      this.timeSaleService.getProduct({ id: parseInt(id, 10) }),
+      this.getTimeSaleService().getProduct({ id: parseInt(id, 10) }),
     );
   }
 }
 
 @ApiTags('TimeSale')
 @Controller('time-sales')
-export class TimeSaleController implements OnModuleInit {
-  private timeSaleService!: TimeSaleService;
-
+export class TimeSaleController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getTimeSaleService(): TimeSaleService {
     const client = this.dynamicGrpcClient.getTimeSaleClient();
-    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
+    return client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()
@@ -91,7 +86,7 @@ export class TimeSaleController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '타임세일이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
   async createTimeSale(@Body() dto: CreateTimeSaleRequest) {
-    return await firstValueFrom(this.timeSaleService.createTimeSale(dto));
+    return await firstValueFrom(this.getTimeSaleService().createTimeSale(dto));
   }
 
   @Get(':id')
@@ -101,7 +96,7 @@ export class TimeSaleController implements OnModuleInit {
   @ApiResponse({ status: 404, description: '타임세일을 찾을 수 없습니다.' })
   async getTimeSale(@Param('id') id: string) {
     return await firstValueFrom(
-      this.timeSaleService.getTimeSale({ id: parseInt(id, 10) }),
+      this.getTimeSaleService().getTimeSale({ id: parseInt(id, 10) }),
     );
   }
 
@@ -125,20 +120,18 @@ export class TimeSaleController implements OnModuleInit {
       params.status = status;
     }
 
-    return await firstValueFrom(this.timeSaleService.listTimeSales(params));
+    return await firstValueFrom(this.getTimeSaleService().listTimeSales(params));
   }
 }
 
 @ApiTags('TimeSale')
 @Controller('orders')
-export class OrderController implements OnModuleInit {
-  private timeSaleService!: TimeSaleService;
-
+export class OrderController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getTimeSaleService(): TimeSaleService {
     const client = this.dynamicGrpcClient.getTimeSaleClient();
-    this.timeSaleService = client.getService<TimeSaleService>('TimeSaleService');
+    return client.getService<TimeSaleService>('TimeSaleService');
   }
 
   @Post()
@@ -146,7 +139,7 @@ export class OrderController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '주문이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '재고가 부족하거나 잘못된 요청입니다.' })
   async createOrder(@Body() dto: CreateOrderRequest) {
-    return await firstValueFrom(this.timeSaleService.createOrder(dto));
+    return await firstValueFrom(this.getTimeSaleService().createOrder(dto));
   }
 
   @Get(':id')
@@ -156,7 +149,7 @@ export class OrderController implements OnModuleInit {
   @ApiResponse({ status: 404, description: '주문을 찾을 수 없습니다.' })
   async getOrder(@Param('id') id: string) {
     return await firstValueFrom(
-      this.timeSaleService.getOrder({ id: parseInt(id, 10) }),
+      this.getTimeSaleService().getOrder({ id: parseInt(id, 10) }),
     );
   }
 }

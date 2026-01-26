@@ -16,7 +16,17 @@
       "Bash(docker-compose up:*)",
       "Bash(timeout 10 pnpm dev:gateway:*)",
       "Bash(pnpm build:*)",
-      "Bash(Select-String -Pattern \"ERROR|Successfully\")"
+      "Bash(Select-String -Pattern \"ERROR|Successfully\")",
+      "Bash(git commit:*)",
+      "Bash(pnpm dev:all:*)",
+      "Bash(node:*)",
+      "Bash(pnpm dev:coupon:*)",
+      "Bash(pnpm dev:point:*)",
+      "Bash(pnpm dev:timesale:*)",
+      "Bash(pnpm dev:gateway:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(curl:*)"
     ]
   }
 }

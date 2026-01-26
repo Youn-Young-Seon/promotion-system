@@ -5,7 +5,6 @@ import {
   Body,
   Param,
   Query,
-  OnModuleInit,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
@@ -38,14 +37,12 @@ interface PointService {
 
 @ApiTags('Point')
 @Controller('points')
-export class PointController implements OnModuleInit {
-  private pointService!: PointService;
-
+export class PointController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
-  onModuleInit() {
+  private getPointService(): PointService {
     const client = this.dynamicGrpcClient.getPointClient();
-    this.pointService = client.getService<PointService>('PointService');
+    return client.getService<PointService>('PointService');
   }
 
   @Post('earn')
@@ -53,7 +50,7 @@ export class PointController implements OnModuleInit {
   @ApiResponse({ status: 201, description: '적립금이 성공적으로 적립되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
   async earnPoints(@Body() dto: EarnPointsRequest) {
-    return await firstValueFrom(this.pointService.earnPoints(dto));
+    return await firstValueFrom(this.getPointService().earnPoints(dto));
   }
 
   @Post('use')
@@ -61,7 +58,7 @@ export class PointController implements OnModuleInit {
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 사용되었습니다.' })
   @ApiResponse({ status: 400, description: '잔액이 부족하거나 잘못된 요청입니다.' })
   async usePoints(@Body() dto: UsePointsRequest) {
-    return await firstValueFrom(this.pointService.usePoints(dto));
+    return await firstValueFrom(this.getPointService().usePoints(dto));
   }
 
   @Post('cancel')
@@ -69,7 +66,7 @@ export class PointController implements OnModuleInit {
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 취소되었습니다.' })
   @ApiResponse({ status: 400, description: '취소할 수 없는 거래입니다.' })
   async cancelPoints(@Body() dto: CancelPointsRequest) {
-    return await firstValueFrom(this.pointService.cancelPoints(dto));
+    return await firstValueFrom(this.getPointService().cancelPoints(dto));
   }
 
   @Get('users/:userId/balance')
@@ -79,7 +76,7 @@ export class PointController implements OnModuleInit {
   @ApiResponse({ status: 404, description: '사용자를 찾을 수 없습니다.' })
   async getBalance(@Param('userId') userId: string) {
     return await firstValueFrom(
-      this.pointService.getBalance({ userId: parseInt(userId, 10) }),
+      this.getPointService().getBalance({ userId: parseInt(userId, 10) }),
     );
   }
 
@@ -95,7 +92,7 @@ export class PointController implements OnModuleInit {
     @Query('size') size = 10,
   ) {
     return await firstValueFrom(
-      this.pointService.getHistory({
+      this.getPointService().getHistory({
         userId: parseInt(userId, 10),
         page: parseInt(String(page), 10),
         size: parseInt(String(size), 10),
