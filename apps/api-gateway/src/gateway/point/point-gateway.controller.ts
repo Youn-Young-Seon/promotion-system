@@ -8,15 +8,32 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
 
+interface EarnPointsRequest {
+  userId: number;
+  amount: number;
+  description: string;
+}
+
+interface UsePointsRequest {
+  userId: number;
+  amount: number;
+  description: string;
+}
+
+interface CancelPointsRequest {
+  pointId: number;
+}
+
 interface PointService {
-  earnPoints(data: any): any;
-  usePoints(data: any): any;
-  cancelPoints(data: any): any;
-  getBalance(data: any): any;
-  getHistory(data: any): any;
+  earnPoints(data: EarnPointsRequest): Observable<unknown>;
+  usePoints(data: UsePointsRequest): Observable<unknown>;
+  cancelPoints(data: CancelPointsRequest): Observable<unknown>;
+  getBalance(data: { userId: number }): Observable<unknown>;
+  getHistory(data: { userId: number; page: number; size: number }): Observable<unknown>;
 }
 
 @ApiTags('Point')
@@ -35,7 +52,7 @@ export class PointController implements OnModuleInit {
   @ApiOperation({ summary: '적립금 적립', description: '사용자에게 적립금을 적립합니다.' })
   @ApiResponse({ status: 201, description: '적립금이 성공적으로 적립되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async earnPoints(@Body() dto: any) {
+  async earnPoints(@Body() dto: EarnPointsRequest) {
     return await firstValueFrom(this.pointService.earnPoints(dto));
   }
 
@@ -43,7 +60,7 @@ export class PointController implements OnModuleInit {
   @ApiOperation({ summary: '적립금 사용', description: '사용자의 적립금을 사용합니다.' })
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 사용되었습니다.' })
   @ApiResponse({ status: 400, description: '잔액이 부족하거나 잘못된 요청입니다.' })
-  async usePoints(@Body() dto: any) {
+  async usePoints(@Body() dto: UsePointsRequest) {
     return await firstValueFrom(this.pointService.usePoints(dto));
   }
 
@@ -51,7 +68,7 @@ export class PointController implements OnModuleInit {
   @ApiOperation({ summary: '적립금 취소', description: '사용된 적립금을 취소합니다.' })
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 취소되었습니다.' })
   @ApiResponse({ status: 400, description: '취소할 수 없는 거래입니다.' })
-  async cancelPoints(@Body() dto: any) {
+  async cancelPoints(@Body() dto: CancelPointsRequest) {
     return await firstValueFrom(this.pointService.cancelPoints(dto));
   }
 

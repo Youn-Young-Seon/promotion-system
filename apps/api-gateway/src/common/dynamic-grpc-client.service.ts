@@ -26,7 +26,7 @@ export class DynamicGrpcClientService implements OnModuleInit {
       try {
         const instances = await this.etcdService.discoverService(serviceName);
 
-        if (instances.length > 0) {
+        if (instances.length > 0 && instances[0]) {
           // 첫 번째 인스턴스 사용 (라운드 로빈은 추후 구현 가능)
           const instance = instances[0];
           await this.createGrpcClient(serviceName, instance);
@@ -66,8 +66,7 @@ export class DynamicGrpcClientService implements OnModuleInit {
         },
       }) as ClientGrpc;
 
-      await client.connect();
-
+      // gRPC 클라이언트는 lazy connection을 사용하므로 connect() 호출 불필요
       this.clients.set(serviceName, client);
       this.serviceEndpoints.set(serviceName, url);
 
@@ -84,7 +83,7 @@ export class DynamicGrpcClientService implements OnModuleInit {
       void this.etcdService.watchService(serviceName, async (instances) => {
         this.logger.log(`Service ${serviceName} instances changed: ${instances.length} instances`);
 
-        if (instances.length > 0) {
+        if (instances.length > 0 && instances[0]) {
           const instance = instances[0];
           const newUrl = `${instance.host}:${instance.port}`;
           const currentUrl = this.serviceEndpoints.get(serviceName);
@@ -93,11 +92,8 @@ export class DynamicGrpcClientService implements OnModuleInit {
           if (newUrl !== currentUrl) {
             this.logger.log(`Reconnecting to ${serviceName} at ${newUrl}`);
 
-            // 기존 클라이언트 종료
-            const oldClient = this.clients.get(serviceName);
-            if (oldClient) {
-              await oldClient.close();
-            }
+            // 기존 클라이언트 제거 (gRPC 클라이언트는 자동으로 정리됨)
+            this.clients.delete(serviceName);
 
             // 새 클라이언트 생성
             await this.createGrpcClient(serviceName, instance);

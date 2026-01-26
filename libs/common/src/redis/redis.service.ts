@@ -19,7 +19,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.client = new Redis({
       host,
       port,
-      password,
+      password: password || undefined,
       retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
@@ -79,7 +79,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.exists(key);
   }
 
-  async acquireLock(resource: string, ttl = 5000): Promise<Redlock.Lock> {
+  async acquireLock(resource: string, ttl = 5000): Promise<ReturnType<Redlock['acquire']>> {
     try {
       const lock = await this.redlock.acquire([`lock:${resource}`], ttl);
       this.logger.debug(`Lock acquired for resource: ${resource}`);
@@ -90,7 +90,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async releaseLock(lock: Redlock.Lock): Promise<void> {
+  async releaseLock(lock: ReturnType<Redlock['acquire']>): Promise<void> {
     try {
       await lock.release();
       this.logger.debug('Lock released successfully');

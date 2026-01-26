@@ -1,0 +1,361 @@
+
+> promotion-system@1.0.0 build C:\Users\Yun\Documents\promotion-system
+> nest build
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/auth/auth.module.ts:15:7[39m[22m
+TS2322: Type '(configService: ConfigService) => Promise<{ secret: string; signOptions: { expiresIn: string; }; }>' is not assignable to type '(...args: any[]) => JwtModuleOptions | Promise<JwtModuleOptions>'.
+  Type 'Promise<{ secret: string; signOptions: { expiresIn: string; }; }>' is not assignable to type 'JwtModuleOptions | Promise<JwtModuleOptions>'.
+    Type 'Promise<{ secret: string; signOptions: { expiresIn: string; }; }>' is not assignable to type 'Promise<JwtModuleOptions>'.
+      Type '{ secret: string; signOptions: { expiresIn: string; }; }' is not assignable to type 'JwtModuleOptions'.
+        The types of 'signOptions.expiresIn' are incompatible between these types.
+          Type 'string' is not assignable to type 'number | StringValue'.
+  [0m [90m 13 |[39m     [33mJwtModule[39m[33m.[39mregisterAsync({
+   [90m 14 |[39m       imports[33m:[39m [[33mConfigModule[39m][33m,[39m
+  [31m[1m>[22m[39m[90m 15 |[39m       useFactory[33m:[39m [36masync[39m (configService[33m:[39m [33mConfigService[39m) [33m=>[39m ({
+   [90m    |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 16 |[39m         secret[33m:[39m configService[33m.[39m[36mget[39m[33m<[39m[33mstring[39m[33m>[39m([32m'JWT_SECRET'[39m[33m,[39m [32m'your-secret-key'[39m)[33m,[39m
+   [90m 17 |[39m         signOptions[33m:[39m {
+   [90m 18 |[39m           expiresIn[33m:[39m configService[33m.[39m[36mget[39m[33m<[39m[33mstring[39m[33m>[39m([32m'JWT_EXPIRATION'[39m[33m,[39m [32m'1d'[39m) [36mas[39m string[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/auth/strategies/jwt.strategy.ts:14:23[39m[22m
+TS6138: Property 'configService' is declared but its value is never read.
+  [0m [90m 12 |[39m [33m@[39m[33mInjectable[39m()
+   [90m 13 |[39m [36mexport[39m [36mclass[39m [33mJwtStrategy[39m [36mextends[39m [33mPassportStrategy[39m([33mStrategy[39m) {
+  [31m[1m>[22m[39m[90m 14 |[39m   constructor([36mprivate[39m configService[33m:[39m [33mConfigService[39m) {
+   [90m    |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 15 |[39m     [36msuper[39m({
+   [90m 16 |[39m       jwtFromRequest[33m:[39m [33mExtractJwt[39m[33m.[39mfromAuthHeaderAsBearerToken()[33m,[39m
+   [90m 17 |[39m       ignoreExpiration[33m:[39m [36mfalse[39m[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/circuit-breaker.service.ts:2:33[39m[22m
+TS7016: Could not find a declaration file for module 'opossum'. 'C:/Users/Yun/Documents/promotion-system/node_modules/.pnpm/opossum@8.5.0/node_modules/opossum/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/opossum` if it exists or add a new declaration (.d.ts) file containing `declare module 'opossum';`
+  [0m [90m 1 |[39m [36mimport[39m { [33mInjectable[39m[33m,[39m [33mLogger[39m } [36mfrom[39m [32m'@nestjs/common'[39m[33m;[39m
+  [31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mCircuitBreaker[39m [36mfrom[39m [32m'opossum'[39m[33m;[39m
+   [90m   |[39m                                 [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 3 |[39m
+   [90m 4 |[39m [33m@[39m[33mInjectable[39m()
+   [90m 5 |[39m [36mexport[39m [36mclass[39m [33mCircuitBreakerService[39m {[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/circuit-breaker.service.ts:47:28[39m[22m
+TS7006: Parameter 'error' implicitly has an 'any' type.
+  [0m [90m 45 |[39m     })[33m;[39m
+   [90m 46 |[39m
+  [31m[1m>[22m[39m[90m 47 |[39m     breaker[33m.[39mon([32m'failure'[39m[33m,[39m (error) [33m=>[39m {
+   [90m    |[39m                            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 48 |[39m       [36mthis[39m[33m.[39mlogger[33m.[39merror([32m`Circuit Breaker [${name}] failure:`[39m[33m,[39m error[33m.[39mmessage)[33m;[39m
+   [90m 49 |[39m     })[33m;[39m
+   [90m 50 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/circuit-breaker.service.ts:59:29[39m[22m
+TS6133: 'result' is declared but its value is never read.
+  [0m [90m 57 |[39m     })[33m;[39m
+   [90m 58 |[39m
+  [31m[1m>[22m[39m[90m 59 |[39m     breaker[33m.[39mon([32m'fallback'[39m[33m,[39m (result) [33m=>[39m {
+   [90m    |[39m                             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 60 |[39m       [36mthis[39m[33m.[39mlogger[33m.[39mlog([32m`Circuit Breaker [${name}] fallback triggered`[39m)[33m;[39m
+   [90m 61 |[39m     })[33m;[39m
+   [90m 62 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/circuit-breaker.service.ts:59:29[39m[22m
+TS7006: Parameter 'result' implicitly has an 'any' type.
+  [0m [90m 57 |[39m     })[33m;[39m
+   [90m 58 |[39m
+  [31m[1m>[22m[39m[90m 59 |[39m     breaker[33m.[39mon([32m'fallback'[39m[33m,[39m (result) [33m=>[39m {
+   [90m    |[39m                             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 60 |[39m       [36mthis[39m[33m.[39mlogger[33m.[39mlog([32m`Circuit Breaker [${name}] fallback triggered`[39m)[33m;[39m
+   [90m 61 |[39m     })[33m;[39m
+   [90m 62 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/circuit-breaker.service.ts:95:28[39m[22m
+TS6133: 'breaker' is declared but its value is never read.
+  [0m [90m 93 |[39m   getAllStats() {
+   [90m 94 |[39m     [36mconst[39m stats[33m:[39m any[] [33m=[39m [][33m;[39m
+  [31m[1m>[22m[39m[90m 95 |[39m     [36mthis[39m[33m.[39mbreakers[33m.[39mforEach((breaker[33m,[39m name) [33m=>[39m {
+   [90m    |[39m                            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 96 |[39m       stats[33m.[39mpush([36mthis[39m[33m.[39mgetStats(name))[33m;[39m
+   [90m 97 |[39m     })[33m;[39m
+   [90m 98 |[39m     [36mreturn[39m stats[33m;[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:32:52[39m[22m
+TS2345: Argument of type 'ServiceInstance | undefined' is not assignable to parameter of type 'ServiceInstance'.
+  Type 'undefined' is not assignable to type 'ServiceInstance'.
+  [0m [90m 30 |[39m           [90m// 첫 번째 인스턴스 사용 (라운드 로빈은 추후 구현 가능)[39m
+   [90m 31 |[39m           [36mconst[39m instance [33m=[39m instances[[35m0[39m][33m;[39m
+  [31m[1m>[22m[39m[90m 32 |[39m           [36mawait[39m [36mthis[39m[33m.[39mcreateGrpcClient(serviceName[33m,[39m instance)[33m;[39m
+   [90m    |[39m                                                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 33 |[39m         } [36melse[39m {
+   [90m 34 |[39m           [36mthis[39m[33m.[39mlogger[33m.[39mwarn([32m`No instances found for service: ${serviceName}`[39m)[33m;[39m
+   [90m 35 |[39m         }[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:69:20[39m[22m
+TS2339: Property 'connect' does not exist on type 'ClientGrpc'.
+  [0m [90m 67 |[39m       }) [36mas[39m [33mClientGrpc[39m[33m;[39m
+   [90m 68 |[39m
+  [31m[1m>[22m[39m[90m 69 |[39m       [36mawait[39m client[33m.[39mconnect()[33m;[39m
+   [90m    |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 70 |[39m
+   [90m 71 |[39m       [36mthis[39m[33m.[39mclients[33m.[39m[36mset[39m(serviceName[33m,[39m client)[33m;[39m
+   [90m 72 |[39m       [36mthis[39m[33m.[39mserviceEndpoints[33m.[39m[36mset[39m(serviceName[33m,[39m url)[33m;[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:89:29[39m[22m
+TS18048: 'instance' is possibly 'undefined'.
+  [0m [90m 87 |[39m         [36mif[39m (instances[33m.[39mlength [33m>[39m [35m0[39m) {
+   [90m 88 |[39m           [36mconst[39m instance [33m=[39m instances[[35m0[39m][33m;[39m
+  [31m[1m>[22m[39m[90m 89 |[39m           [36mconst[39m newUrl [33m=[39m [32m`${instance.host}:${instance.port}`[39m[33m;[39m
+   [90m    |[39m                             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 90 |[39m           [36mconst[39m currentUrl [33m=[39m [36mthis[39m[33m.[39mserviceEndpoints[33m.[39m[36mget[39m(serviceName)[33m;[39m
+   [90m 91 |[39m
+   [90m 92 |[39m           [90m// URL이 변경된 경우에만 재연결[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:89:46[39m[22m
+TS18048: 'instance' is possibly 'undefined'.
+  [0m [90m 87 |[39m         [36mif[39m (instances[33m.[39mlength [33m>[39m [35m0[39m) {
+   [90m 88 |[39m           [36mconst[39m instance [33m=[39m instances[[35m0[39m][33m;[39m
+  [31m[1m>[22m[39m[90m 89 |[39m           [36mconst[39m newUrl [33m=[39m [32m`${instance.host}:${instance.port}`[39m[33m;[39m
+   [90m    |[39m                                              [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 90 |[39m           [36mconst[39m currentUrl [33m=[39m [36mthis[39m[33m.[39mserviceEndpoints[33m.[39m[36mget[39m(serviceName)[33m;[39m
+   [90m 91 |[39m
+   [90m 92 |[39m           [90m// URL이 변경된 경우에만 재연결[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:99:31[39m[22m
+TS2339: Property 'close' does not exist on type 'ClientGrpc'.
+  [0m [90m  97 |[39m             [36mconst[39m oldClient [33m=[39m [36mthis[39m[33m.[39mclients[33m.[39m[36mget[39m(serviceName)[33m;[39m
+   [90m  98 |[39m             [36mif[39m (oldClient) {
+  [31m[1m>[22m[39m[90m  99 |[39m               [36mawait[39m oldClient[33m.[39mclose()[33m;[39m
+   [90m     |[39m                               [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 100 |[39m             }
+   [90m 101 |[39m
+   [90m 102 |[39m             [90m// 새 클라이언트 생성[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/common/dynamic-grpc-client.service.ts:103:54[39m[22m
+TS2345: Argument of type 'ServiceInstance | undefined' is not assignable to parameter of type 'ServiceInstance'.
+  Type 'undefined' is not assignable to type 'ServiceInstance'.
+  [0m [90m 101 |[39m
+   [90m 102 |[39m             [90m// 새 클라이언트 생성[39m
+  [31m[1m>[22m[39m[90m 103 |[39m             [36mawait[39m [36mthis[39m[33m.[39mcreateGrpcClient(serviceName[33m,[39m instance)[33m;[39m
+   [90m     |[39m                                                      [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 104 |[39m           }
+   [90m 105 |[39m         }
+   [90m 106 |[39m       })[33m;[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/coupon/coupon-gateway.controller.ts:27:11[39m[22m
+TS2564: Property 'couponService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 25 |[39m [33m@[39m[33mController[39m([32m'coupon-policies'[39m)
+   [90m 26 |[39m [36mexport[39m [36mclass[39m [33mCouponPolicyController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 27 |[39m   [36mprivate[39m couponService[33m:[39m [33mCouponService[39m[33m;[39m
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 28 |[39m
+   [90m 29 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 30 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/coupon/coupon-gateway.controller.ts:76:11[39m[22m
+TS2564: Property 'couponService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 74 |[39m [33m@[39m[33mController[39m([32m'coupons'[39m)
+   [90m 75 |[39m [36mexport[39m [36mclass[39m [33mCouponController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 76 |[39m   [36mprivate[39m couponService[33m:[39m [33mCouponService[39m[33m;[39m
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 77 |[39m
+   [90m 78 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 79 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/point/point-gateway.controller.ts:25:11[39m[22m
+TS2564: Property 'pointService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 23 |[39m [33m@[39m[33mController[39m([32m'points'[39m)
+   [90m 24 |[39m [36mexport[39m [36mclass[39m [33mPointController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 25 |[39m   [36mprivate[39m pointService[33m:[39m [33mPointService[39m[33m;[39m
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 26 |[39m
+   [90m 27 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 28 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/timesale/timesale-gateway.controller.ts:27:11[39m[22m
+TS2564: Property 'timeSaleService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 25 |[39m [33m@[39m[33mController[39m([32m'products'[39m)
+   [90m 26 |[39m [36mexport[39m [36mclass[39m [33mProductController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 27 |[39m   [36mprivate[39m timeSaleService[33m:[39m [33mTimeSaleService[39m[33m;[39m
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 28 |[39m
+   [90m 29 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 30 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/timesale/timesale-gateway.controller.ts:59:11[39m[22m
+TS2564: Property 'timeSaleService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 57 |[39m [33m@[39m[33mController[39m([32m'time-sales'[39m)
+   [90m 58 |[39m [36mexport[39m [36mclass[39m [33mTimeSaleController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 59 |[39m   [36mprivate[39m timeSaleService[33m:[39m [33mTimeSaleService[39m[33m;[39m
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 60 |[39m
+   [90m 61 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 62 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./apps/api-gateway/src/gateway/timesale/timesale-gateway.controller.ts:111:11[39m[22m
+TS2564: Property 'timeSaleService' has no initializer and is not definitely assigned in the constructor.
+  [0m [90m 109 |[39m [33m@[39m[33mController[39m([32m'orders'[39m)
+   [90m 110 |[39m [36mexport[39m [36mclass[39m [33mOrderController[39m [36mimplements[39m [33mOnModuleInit[39m {
+  [31m[1m>[22m[39m[90m 111 |[39m   [36mprivate[39m timeSaleService[33m:[39m [33mTimeSaleService[39m[33m;[39m
+   [90m     |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 112 |[39m
+   [90m 113 |[39m   constructor([36mprivate[39m readonly dynamicGrpcClient[33m:[39m [33mDynamicGrpcClientService[39m) {}
+   [90m 114 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/etcd/etcd.service.ts:33:31[39m[22m
+TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+  [0m [90m 31 |[39m   [36masync[39m onModuleDestroy()[33m:[39m [33mPromise[39m[33m<[39m[36mvoid[39m[33m>[39m {
+   [90m 32 |[39m     [36mif[39m ([36mthis[39m[33m.[39mleaseId) {
+  [31m[1m>[22m[39m[90m 33 |[39m       [36mawait[39m [36mthis[39m[33m.[39mclient[33m.[39mlease([36mthis[39m[33m.[39mleaseId)[33m.[39mrevoke()[33m;[39m
+   [90m    |[39m                               [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 34 |[39m     }
+   [90m 35 |[39m     [36mthis[39m[33m.[39mlogger[33m.[39mlog([32m'etcd client closed'[39m)[33m;[39m
+   [90m 36 |[39m   }[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/kafka/kafka.service.ts:50:33[39m[22m
+TS4111: Property 'id' comes from an index signature, so it must be accessed with ['id'].
+  [0m [90m 48 |[39m         messages[33m:[39m [
+   [90m 49 |[39m           {
+  [31m[1m>[22m[39m[90m 50 |[39m             key[33m:[39m [33mString[39m(message[33m.[39mid [33m?[39m[33m?[39m [33mDate[39m[33m.[39mnow())[33m,[39m
+   [90m    |[39m                                 [31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 51 |[39m             value[33m:[39m [33mJSON[39m[33m.[39mstringify(message)[33m,[39m
+   [90m 52 |[39m             timestamp[33m:[39m [33mString[39m([33mDate[39m[33m.[39mnow())[33m,[39m
+   [90m 53 |[39m           }[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/global-exception.filter.ts:62:19[39m[22m
+TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+  [0m [90m 60 |[39m     [90m// 민감한 정보 필터링 (프로덕션 환경)[39m
+   [90m 61 |[39m     [36mconst[39m responseBody [33m=[39m
+  [31m[1m>[22m[39m[90m 62 |[39m       process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m===[39m [32m'production'[39m [33m&&[39m status [33m>=[39m [35m500[39m
+   [90m    |[39m                   [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 63 |[39m         [33m?[39m {
+   [90m 64 |[39m             statusCode[33m:[39m status[33m,[39m
+   [90m 65 |[39m             message[33m:[39m [32m'Internal server error'[39m[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.config.ts:23:29[39m[22m
+TS4111: Property 'NODE_ENV' comes from an index signature, so it must be accessed with ['NODE_ENV'].
+  [0m [90m 21 |[39m
+   [90m 22 |[39m [36mexport[39m [36mconst[39m createLoggerConfig [33m=[39m (serviceName[33m:[39m string) [33m=>[39m {
+  [31m[1m>[22m[39m[90m 23 |[39m   [36mconst[39m isDev [33m=[39m process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'production'[39m[33m;[39m
+   [90m    |[39m                             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 24 |[39m
+   [90m 25 |[39m   [36mconst[39m transports[33m:[39m winston[33m.[39mtransport[] [33m=[39m [
+   [90m 26 |[39m     [90m// 콘솔 출력[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.config.ts:42:11[39m[22m
+TS2351: This expression is not constructable.
+  Type 'typeof DailyRotateFile' has no construct signatures.
+  [0m [90m 40 |[39m     [90m// 모든 로그[39m
+   [90m 41 |[39m     transports[33m.[39mpush(
+  [31m[1m>[22m[39m[90m 42 |[39m       [36mnew[39m [33mDailyRotateFile[39m({
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 43 |[39m         dirname[33m:[39m [32m`logs/${serviceName}`[39m[33m,[39m
+   [90m 44 |[39m         filename[33m:[39m [32m'application-%DATE%.log'[39m[33m,[39m
+   [90m 45 |[39m         datePattern[33m:[39m [32m'YYYY-MM-DD'[39m[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.config.ts:54:11[39m[22m
+TS2351: This expression is not constructable.
+  Type 'typeof DailyRotateFile' has no construct signatures.
+  [0m [90m 52 |[39m     [90m// 에러 로그만 별도 저장[39m
+   [90m 53 |[39m     transports[33m.[39mpush(
+  [31m[1m>[22m[39m[90m 54 |[39m       [36mnew[39m [33mDailyRotateFile[39m({
+   [90m    |[39m           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 55 |[39m         dirname[33m:[39m [32m`logs/${serviceName}`[39m[33m,[39m
+   [90m 56 |[39m         filename[33m:[39m [32m'error-%DATE%.log'[39m[33m,[39m
+   [90m 57 |[39m         datePattern[33m:[39m [32m'YYYY-MM-DD'[39m[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.config.ts:67:24[39m[22m
+TS4111: Property 'LOG_LEVEL' comes from an index signature, so it must be accessed with ['LOG_LEVEL'].
+  [0m [90m 65 |[39m
+   [90m 66 |[39m   [36mreturn[39m {
+  [31m[1m>[22m[39m[90m 67 |[39m     level[33m:[39m process[33m.[39menv[33m.[39m[33mLOG_LEVEL[39m [33m||[39m (isDev [33m?[39m [32m'debug'[39m [33m:[39m [32m'info'[39m)[33m,[39m
+   [90m    |[39m                        [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 68 |[39m     format[33m:[39m combine(
+   [90m 69 |[39m       timestamp()[33m,[39m
+   [90m 70 |[39m       errors({ stack[33m:[39m [36mtrue[39m })[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.config.ts:72:14[39m[22m
+TS4111: Property 'service' comes from an index signature, so it must be accessed with ['service'].
+  [0m [90m 70 |[39m       errors({ stack[33m:[39m [36mtrue[39m })[33m,[39m
+   [90m 71 |[39m       winston[33m.[39mformat((info) [33m=>[39m {
+  [31m[1m>[22m[39m[90m 72 |[39m         info[33m.[39mservice [33m=[39m serviceName[33m;[39m
+   [90m    |[39m              [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 73 |[39m         [36mreturn[39m info[33m;[39m
+   [90m 74 |[39m       })()
+   [90m 75 |[39m     )[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.service.ts:20:23[39m[22m
+TS6138: Property 'serviceName' is declared but its value is never read.
+  [0m [90m 18 |[39m   [36mprivate[39m [36mstatic[39m asyncLocalStorage [33m=[39m [36mnew[39m [33mAsyncLocalStorage[39m[33m<[39m[33mLogContext[39m[33m>[39m()[33m;[39m
+   [90m 19 |[39m
+  [31m[1m>[22m[39m[90m 20 |[39m   constructor([36mprivate[39m serviceName[33m:[39m string) {
+   [90m    |[39m                       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 21 |[39m     [36mthis[39m[33m.[39mlogger [33m=[39m winston[33m.[39mcreateLogger(createLoggerConfig(serviceName))[33m;[39m
+   [90m 22 |[39m   }
+   [90m 23 |[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/logger/logger.service.ts:39:15[39m[22m
+TS4111: Property 'context' comes from an index signature, so it must be accessed with ['context'].
+  [0m [90m 37 |[39m     [36mconst[39m context [33m=[39m [33mLoggerService[39m[33m.[39masyncLocalStorage[33m.[39mgetStore() [33m||[39m {}[33m;[39m
+   [90m 38 |[39m     [36mif[39m ([36mthis[39m[33m.[39mcontext) {
+  [31m[1m>[22m[39m[90m 39 |[39m       context[33m.[39mcontext [33m=[39m [36mthis[39m[33m.[39mcontext[33m;[39m
+   [90m    |[39m               [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 40 |[39m     }
+   [90m 41 |[39m     [36mreturn[39m context[33m;[39m
+   [90m 42 |[39m   }[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/redis/redis.service.ts:19:29[39m[22m
+TS2769: No overload matches this call.
+  Overload 1 of 8, '(options: RedisOptions): Redis', gave the following error.
+    Argument of type '{ host: string; port: number; password: string | undefined; retryStrategy: (times: number) => number; }' is not assignable to parameter of type 'RedisOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ host: string; port: number; password: string | undefined; retryStrategy: (times: number) => number; }' is not assignable to type 'CommonRedisOptions' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'password' are incompatible.
+          Type 'string | undefined' is not assignable to type 'string'.
+            Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 8, '(port: number): Redis', gave the following error.
+    Argument of type '{ host: string; port: number; password: string | undefined; retryStrategy: (times: number) => number; }' is not assignable to parameter of type 'number'.
+  Overload 3 of 8, '(path: string): Redis', gave the following error.
+    Argument of type '{ host: string; port: number; password: string | undefined; retryStrategy: (times: number) => number; }' is not assignable to parameter of type 'string'.
+  [0m [90m 17 |[39m     [36mconst[39m password [33m=[39m [36mthis[39m[33m.[39mconfigService[33m.[39m[36mget[39m[33m<[39m[33mstring[39m[33m>[39m([32m'REDIS_PASSWORD'[39m)[33m;[39m
+   [90m 18 |[39m
+  [31m[1m>[22m[39m[90m 19 |[39m     [36mthis[39m[33m.[39mclient [33m=[39m [36mnew[39m [33mRedis[39m({
+   [90m    |[39m                             [31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 20 |[39m       host[33m,[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 21 |[39m       port[33m,[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 22 |[39m       password[33m,[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 23 |[39m       retryStrategy[33m:[39m (times[33m:[39m number) [33m=>[39m {
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 24 |[39m         [36mconst[39m delay [33m=[39m [33mMath[39m[33m.[39mmin(times [33m*[39m [35m50[39m[33m,[39m [35m2000[39m)[33m;[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 25 |[39m         [36mreturn[39m delay[33m;[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 26 |[39m       }[33m,[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+  [31m[1m>[22m[39m[90m 27 |[39m     })[33m;[39m
+   [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 28 |[39m
+   [90m 29 |[39m     [36mthis[39m[33m.[39mredlock [33m=[39m [36mnew[39m [33mRedlock[39m([[36mthis[39m[33m.[39mclient][33m,[39m {
+   [90m 30 |[39m       driftFactor[33m:[39m [35m0.01[39m[33m,[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/redis/redis.service.ts:82:60[39m[22m
+TS2702: 'Redlock' only refers to a type, but is being used as a namespace here.
+  [0m [90m 80 |[39m   }
+   [90m 81 |[39m
+  [31m[1m>[22m[39m[90m 82 |[39m   [36masync[39m acquireLock(resource[33m:[39m string[33m,[39m ttl [33m=[39m [35m5000[39m)[33m:[39m [33mPromise[39m[33m<[39m[33mRedlock[39m[33m.[39m[33mLock[39m[33m>[39m {
+   [90m    |[39m                                                            [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 83 |[39m     [36mtry[39m {
+   [90m 84 |[39m       [36mconst[39m lock [33m=[39m [36mawait[39m [36mthis[39m[33m.[39mredlock[33m.[39macquire([[32m`lock:${resource}`[39m][33m,[39m ttl)[33m;[39m
+   [90m 85 |[39m       [36mthis[39m[33m.[39mlogger[33m.[39mdebug([32m`Lock acquired for resource: ${resource}`[39m)[33m;[39m[0m
+
+[1m[31mERROR[39m[22m in [1m./libs/common/src/redis/redis.service.ts:93:27[39m[22m
+TS2702: 'Redlock' only refers to a type, but is being used as a namespace here.
+  [0m [90m 91 |[39m   }
+   [90m 92 |[39m
+  [31m[1m>[22m[39m[90m 93 |[39m   [36masync[39m releaseLock(lock[33m:[39m [33mRedlock[39m[33m.[39m[33mLock[39m)[33m:[39m [33mPromise[39m[33m<[39m[36mvoid[39m[33m>[39m {
+   [90m    |[39m                           [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 94 |[39m     [36mtry[39m {
+   [90m 95 |[39m       [36mawait[39m lock[33m.[39mrelease()[33m;[39m
+   [90m 96 |[39m       [36mthis[39m[33m.[39mlogger[33m.[39mdebug([32m'Lock released successfully'[39m)[33m;[39m[0m
+
+webpack 5.104.1 compiled with [1m[31m32 errors[39m[22m in 13328 ms
+ ELIFECYCLE  Command failed with exit code 1.

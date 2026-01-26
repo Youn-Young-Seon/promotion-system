@@ -8,17 +8,38 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
 
+interface CreateProductRequest {
+  name: string;
+  price: number;
+  description?: string;
+}
+
+interface CreateTimeSaleRequest {
+  productId: number;
+  quantity: number;
+  salePrice: number;
+  startTime: string;
+  endTime: string;
+}
+
+interface CreateOrderRequest {
+  timeSaleId: number;
+  userId: number;
+  quantity: number;
+}
+
 interface TimeSaleService {
-  createProduct(data: any): any;
-  getProduct(data: any): any;
-  createTimeSale(data: any): any;
-  getTimeSale(data: any): any;
-  listTimeSales(data: any): any;
-  createOrder(data: any): any;
-  getOrder(data: any): any;
+  createProduct(data: CreateProductRequest): Observable<unknown>;
+  getProduct(data: { id: number }): Observable<unknown>;
+  createTimeSale(data: CreateTimeSaleRequest): Observable<unknown>;
+  getTimeSale(data: { id: number }): Observable<unknown>;
+  listTimeSales(data: { status?: string; page: number; size: number }): Observable<unknown>;
+  createOrder(data: CreateOrderRequest): Observable<unknown>;
+  getOrder(data: { id: number }): Observable<unknown>;
 }
 
 @ApiTags('TimeSale')
@@ -37,7 +58,7 @@ export class ProductController implements OnModuleInit {
   @ApiOperation({ summary: '상품 등록', description: '새로운 상품을 등록합니다.' })
   @ApiResponse({ status: 201, description: '상품이 성공적으로 등록되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async createProduct(@Body() dto: any) {
+  async createProduct(@Body() dto: CreateProductRequest) {
     return await firstValueFrom(this.timeSaleService.createProduct(dto));
   }
 
@@ -69,7 +90,7 @@ export class TimeSaleController implements OnModuleInit {
   @ApiOperation({ summary: '타임세일 생성', description: '새로운 타임세일을 생성합니다.' })
   @ApiResponse({ status: 201, description: '타임세일이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async createTimeSale(@Body() dto: any) {
+  async createTimeSale(@Body() dto: CreateTimeSaleRequest) {
     return await firstValueFrom(this.timeSaleService.createTimeSale(dto));
   }
 
@@ -121,7 +142,7 @@ export class OrderController implements OnModuleInit {
   @ApiOperation({ summary: '주문 생성', description: '타임세일 상품을 주문합니다.' })
   @ApiResponse({ status: 201, description: '주문이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '재고가 부족하거나 잘못된 요청입니다.' })
-  async createOrder(@Body() dto: any) {
+  async createOrder(@Body() dto: CreateOrderRequest) {
     return await firstValueFrom(this.timeSaleService.createOrder(dto));
   }
 

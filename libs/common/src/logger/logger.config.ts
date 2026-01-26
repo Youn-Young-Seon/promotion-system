@@ -1,10 +1,20 @@
 import * as winston from 'winston';
-import * as DailyRotateFile from 'winston-daily-rotate-file';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
+interface LogInfo {
+  level: string;
+  message: string;
+  timestamp?: string;
+  requestId?: string;
+  service?: string;
+  [key: string]: unknown;
+}
+
 // 커스텀 로그 포맷 (개발 환경)
-const devFormat = printf(({ level, message, timestamp, requestId, service, ...meta }) => {
+const devFormat = printf((info: LogInfo) => {
+  const { level, message, timestamp, requestId, service, ...meta } = info;
   const requestIdStr = requestId ? `[${requestId}]` : '';
   const serviceStr = service ? `[${service}]` : '';
   const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
@@ -20,7 +30,7 @@ const prodFormat = combine(
 );
 
 export const createLoggerConfig = (serviceName: string) => {
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = process.env['NODE_ENV'] !== 'production';
 
   const transports: winston.transport[] = [
     // 콘솔 출력
@@ -64,12 +74,12 @@ export const createLoggerConfig = (serviceName: string) => {
   }
 
   return {
-    level: process.env.LOG_LEVEL || (isDev ? 'debug' : 'info'),
+    level: process.env['LOG_LEVEL'] || (isDev ? 'debug' : 'info'),
     format: combine(
       timestamp(),
       errors({ stack: true }),
-      winston.format((info) => {
-        info.service = serviceName;
+      winston.format((info: LogInfo) => {
+        info['service'] = serviceName;
         return info;
       })()
     ),

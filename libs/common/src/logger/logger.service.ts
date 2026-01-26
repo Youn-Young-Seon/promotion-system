@@ -36,7 +36,7 @@ export class LoggerService implements NestLoggerService {
   private getContext(): LogContext {
     const context = LoggerService.asyncLocalStorage.getStore() || {};
     if (this.context) {
-      context.context = this.context;
+      context['context'] = this.context;
     }
     return context;
   }

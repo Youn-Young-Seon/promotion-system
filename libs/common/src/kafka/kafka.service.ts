@@ -43,11 +43,12 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   async emit(topic: string, message: Record<string, unknown>): Promise<void> {
     try {
+      const messageId = (message as Record<string, unknown>)['id'] ?? Date.now();
       await this.producer.send({
         topic,
         messages: [
           {
-            key: String(message.id ?? Date.now()),
+            key: String(messageId),
             value: JSON.stringify(message),
             timestamp: String(Date.now()),
           },

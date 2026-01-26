@@ -59,7 +59,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     // 민감한 정보 필터링 (프로덕션 환경)
     const responseBody =
-      process.env.NODE_ENV === 'production' && status >= 500
+      process.env['NODE_ENV'] === 'production' && status >= 500
         ? {
             statusCode: status,
             message: 'Internal server error',

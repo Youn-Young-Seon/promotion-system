@@ -1,18 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as CircuitBreaker from 'opossum';
 
+interface BreakerStats {
+  name: string;
+  state: 'OPEN' | 'HALF-OPEN' | 'CLOSED';
+  stats: CircuitBreaker.Stats;
+}
+
 @Injectable()
 export class CircuitBreakerService {
   private readonly logger = new Logger(CircuitBreakerService.name);
-  private breakers: Map<string, CircuitBreaker> = new Map();
+  private breakers: Map<string, CircuitBreaker<unknown[], unknown>> = new Map();
 
   createBreaker<T>(
     name: string,
-    action: (...args: any[]) => Promise<T>,
+    action: (...args: unknown[]) => Promise<T>,
     options?: CircuitBreaker.Options,
-  ): CircuitBreaker<any[], T> {
+  ): CircuitBreaker<unknown[], T> {
     if (this.breakers.has(name)) {
-      return this.breakers.get(name) as CircuitBreaker<any[], T>;
+      return this.breakers.get(name) as CircuitBreaker<unknown[], T>;
     }
 
     const defaultOptions: CircuitBreaker.Options = {
@@ -44,7 +50,7 @@ export class CircuitBreakerService {
       this.logger.debug(`Circuit Breaker [${name}] success`);
     });
 
-    breaker.on('failure', (error) => {
+    breaker.on('failure', (error: Error) => {
       this.logger.error(`Circuit Breaker [${name}] failure:`, error.message);
     });
 
@@ -56,28 +62,28 @@ export class CircuitBreakerService {
       this.logger.warn(`Circuit Breaker [${name}] rejected (circuit is open)`);
     });
 
-    breaker.on('fallback', (result) => {
+    breaker.on('fallback', () => {
       this.logger.log(`Circuit Breaker [${name}] fallback triggered`);
     });
 
-    this.breakers.set(name, breaker);
+    this.breakers.set(name, breaker as CircuitBreaker<unknown[], unknown>);
     return breaker;
   }
 
-  getBreaker(name: string): CircuitBreaker | undefined {
+  getBreaker(name: string): CircuitBreaker<unknown[], unknown> | undefined {
     return this.breakers.get(name);
   }
 
   async execute<T>(
     name: string,
-    action: (...args: any[]) => Promise<T>,
-    ...args: any[]
+    action: (...args: unknown[]) => Promise<T>,
+    ...args: unknown[]
   ): Promise<T> {
-    const breaker = this.getBreaker(name) || this.createBreaker(name, action);
+    const breaker = (this.getBreaker(name) || this.createBreaker(name, action)) as CircuitBreaker<unknown[], T>;
     return await breaker.fire(...args);
   }
 
-  getStats(name: string) {
+  getStats(name: string): BreakerStats | null {
     const breaker = this.breakers.get(name);
     if (!breaker) {
       return null;
@@ -90,10 +96,13 @@ export class CircuitBreakerService {
     };
   }
 
-  getAllStats() {
-    const stats: any[] = [];
-    this.breakers.forEach((breaker, name) => {
-      stats.push(this.getStats(name));
+  getAllStats(): BreakerStats[] {
+    const stats: BreakerStats[] = [];
+    this.breakers.forEach((_breaker, name) => {
+      const stat = this.getStats(name);
+      if (stat) {
+        stats.push(stat);
+      }
     });
     return stats;
   }
