@@ -46,7 +46,7 @@ interface CouponService {
 @ApiTags('Coupon')
 @Controller('coupon-policies')
 export class CouponPolicyController implements OnModuleInit {
-  private couponService: CouponService;
+  private couponService!: CouponService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
@@ -95,7 +95,7 @@ export class CouponPolicyController implements OnModuleInit {
 @ApiTags('Coupon')
 @Controller('coupons')
 export class CouponController implements OnModuleInit {
-  private couponService: CouponService;
+  private couponService!: CouponService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 

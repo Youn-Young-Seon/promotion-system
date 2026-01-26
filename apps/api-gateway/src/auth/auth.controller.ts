@@ -35,7 +35,7 @@ export class AuthController {
   @ApiOperation({ summary: '프로필 조회', description: '현재 로그인한 사용자의 프로필을 조회합니다.' })
   @ApiResponse({ status: 200, description: '프로필 조회 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 사용자입니다.' })
-  async getProfile(@Request() req: any) {
+  async getProfile(@Request() req: { user: { userId: number } }) {
     return this.authService.getProfile(req.user.userId);
   }
 }

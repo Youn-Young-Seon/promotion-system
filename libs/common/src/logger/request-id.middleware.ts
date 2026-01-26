@@ -13,12 +13,16 @@ export class RequestIdMiddleware implements NestMiddleware {
     res.setHeader('X-Request-ID', requestId);
 
     // AsyncLocalStorage에 컨텍스트 저장
-    const context = {
+    const userId = (req as Request & { user?: { userId?: number } }).user?.userId;
+    const context: { requestId: string; method: string; url: string; userId?: number } = {
       requestId,
       method: req.method,
       url: req.url,
-      userId: (req as any).user?.userId, // JWT에서 추출된 사용자 ID
     };
+
+    if (userId !== undefined) {
+      context.userId = userId;
+    }
 
     LoggerService.runWithContext(context, () => {
       next();

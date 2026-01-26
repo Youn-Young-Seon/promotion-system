@@ -1,13 +1,14 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { CouponPolicyService } from './coupon-policy.service';
+import { CreateCouponPolicyDto } from './dto/create-coupon-policy.dto';
 
 @Controller()
 export class CouponPolicyGrpcController {
   constructor(private readonly couponPolicyService: CouponPolicyService) {}
 
   @GrpcMethod('CouponService', 'CreateCouponPolicy')
-  async createCouponPolicy(data: any) {
+  async createCouponPolicy(data: CreateCouponPolicyDto) {
     const policy = await this.couponPolicyService.create(data);
     return {
       id: Number(policy.id),

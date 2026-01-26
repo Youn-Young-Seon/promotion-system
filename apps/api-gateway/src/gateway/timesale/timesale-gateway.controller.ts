@@ -45,7 +45,7 @@ interface TimeSaleService {
 @ApiTags('TimeSale')
 @Controller('products')
 export class ProductController implements OnModuleInit {
-  private timeSaleService: TimeSaleService;
+  private timeSaleService!: TimeSaleService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
@@ -77,7 +77,7 @@ export class ProductController implements OnModuleInit {
 @ApiTags('TimeSale')
 @Controller('time-sales')
 export class TimeSaleController implements OnModuleInit {
-  private timeSaleService: TimeSaleService;
+  private timeSaleService!: TimeSaleService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 
@@ -116,20 +116,23 @@ export class TimeSaleController implements OnModuleInit {
     @Query('page') page = 0,
     @Query('size') size = 10,
   ) {
-    return await firstValueFrom(
-      this.timeSaleService.listTimeSales({
-        status,
-        page: parseInt(String(page), 10),
-        size: parseInt(String(size), 10),
-      }),
-    );
+    const params: { status?: string; page: number; size: number } = {
+      page: parseInt(String(page), 10),
+      size: parseInt(String(size), 10),
+    };
+
+    if (status !== undefined) {
+      params.status = status;
+    }
+
+    return await firstValueFrom(this.timeSaleService.listTimeSales(params));
   }
 }
 
 @ApiTags('TimeSale')
 @Controller('orders')
 export class OrderController implements OnModuleInit {
-  private timeSaleService: TimeSaleService;
+  private timeSaleService!: TimeSaleService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 

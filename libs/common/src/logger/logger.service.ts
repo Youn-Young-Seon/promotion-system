@@ -5,10 +5,10 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 export interface LogContext {
   requestId?: string;
-  userId?: string;
+  userId?: string | number;
   method?: string;
   url?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 @Injectable({ scope: Scope.TRANSIENT })
@@ -17,7 +17,7 @@ export class LoggerService implements NestLoggerService {
   private context?: string;
   private static asyncLocalStorage = new AsyncLocalStorage<LogContext>();
 
-  constructor(private serviceName: string) {
+  constructor(serviceName: string) {
     this.logger = winston.createLogger(createLoggerConfig(serviceName));
   }
 
@@ -42,11 +42,11 @@ export class LoggerService implements NestLoggerService {
   }
 
   // 로그 메서드
-  log(message: string, meta?: any) {
+  log(message: string, meta?: Record<string, unknown>) {
     this.logger.info(message, { ...this.getContext(), ...meta });
   }
 
-  error(message: string, trace?: string, meta?: any) {
+  error(message: string, trace?: string, meta?: Record<string, unknown>) {
     this.logger.error(message, {
       ...this.getContext(),
       stack: trace,
@@ -54,20 +54,20 @@ export class LoggerService implements NestLoggerService {
     });
   }
 
-  warn(message: string, meta?: any) {
+  warn(message: string, meta?: Record<string, unknown>) {
     this.logger.warn(message, { ...this.getContext(), ...meta });
   }
 
-  debug(message: string, meta?: any) {
+  debug(message: string, meta?: Record<string, unknown>) {
     this.logger.debug(message, { ...this.getContext(), ...meta });
   }
 
-  verbose(message: string, meta?: any) {
+  verbose(message: string, meta?: Record<string, unknown>) {
     this.logger.verbose(message, { ...this.getContext(), ...meta });
   }
 
   // HTTP 요청 로깅
-  logHttpRequest(req: any, res: any, responseTime: number) {
+  logHttpRequest(req: { method: string; url: string; headers: Record<string, unknown>; ip: string }, res: { statusCode: number }, responseTime: number) {
     const { method, url, headers, ip } = req;
     const { statusCode } = res;
 
@@ -83,7 +83,7 @@ export class LoggerService implements NestLoggerService {
   }
 
   // HTTP 에러 로깅
-  logHttpError(req: any, error: any, responseTime: number) {
+  logHttpError(req: { method: string; url: string; headers: Record<string, unknown>; ip: string }, error: { status?: number; message: string; stack?: string }, responseTime: number) {
     const { method, url, headers, ip } = req;
 
     this.logger.error('HTTP Error', {
@@ -100,7 +100,7 @@ export class LoggerService implements NestLoggerService {
   }
 
   // gRPC 요청 로깅
-  logGrpcRequest(method: string, meta?: any) {
+  logGrpcRequest(method: string, meta?: Record<string, unknown>) {
     this.logger.info('gRPC Request', {
       ...this.getContext(),
       method,
@@ -109,7 +109,7 @@ export class LoggerService implements NestLoggerService {
   }
 
   // Kafka 이벤트 로깅
-  logKafkaEvent(topic: string, event: string, meta?: any) {
+  logKafkaEvent(topic: string, event: string, meta?: Record<string, unknown>) {
     this.logger.info('Kafka Event', {
       ...this.getContext(),
       topic,
@@ -119,7 +119,7 @@ export class LoggerService implements NestLoggerService {
   }
 
   // 데이터베이스 쿼리 로깅 (느린 쿼리)
-  logSlowQuery(query: string, duration: number, meta?: any) {
+  logSlowQuery(query: string, duration: number, meta?: Record<string, unknown>) {
     this.logger.warn('Slow Query', {
       ...this.getContext(),
       query,

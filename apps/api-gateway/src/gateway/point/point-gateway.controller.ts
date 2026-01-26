@@ -39,7 +39,7 @@ interface PointService {
 @ApiTags('Point')
 @Controller('points')
 export class PointController implements OnModuleInit {
-  private pointService: PointService;
+  private pointService!: PointService;
 
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
 

@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import Redis from 'ioredis';
+import Redis, { RedisOptions } from 'ioredis';
 import Redlock from 'redlock';
 
 @Injectable()
@@ -16,15 +16,20 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     const port = this.configService.get<number>('REDIS_PORT', 6379);
     const password = this.configService.get<string>('REDIS_PASSWORD');
 
-    this.client = new Redis({
+    const options: RedisOptions = {
       host,
       port,
-      password: password || undefined,
       retryStrategy: (times: number) => {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
-    });
+    };
+
+    if (password) {
+      options.password = password;
+    }
+
+    this.client = new Redis(options);
 
     this.redlock = new Redlock([this.client], {
       driftFactor: 0.01,
@@ -90,7 +95,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async releaseLock(lock: ReturnType<Redlock['acquire']>): Promise<void> {
+  async releaseLock(lock: Awaited<ReturnType<Redlock['acquire']>>): Promise<void> {
     try {
       await lock.release();
       this.logger.debug('Lock released successfully');

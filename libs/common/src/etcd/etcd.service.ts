@@ -30,7 +30,7 @@ export class EtcdService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     if (this.leaseId) {
-      await this.client.lease(this.leaseId).revoke();
+      await this.client.lease(parseInt(this.leaseId, 10)).revoke();
     }
     this.logger.log('etcd client closed');
   }
@@ -47,7 +47,9 @@ export class EtcdService implements OnModuleInit, OnModuleDestroy {
       const key = `/services/${serviceName}/${instance.host}:${instance.port}`;
       const value = JSON.stringify(instance);
 
-      await this.client.put(key).value(value).lease(this.leaseId).exec();
+      if (this.leaseId) {
+        await this.client.put(key).value(value).lease(this.leaseId).exec();
+      }
 
       // Keep-alive for the lease
       lease.on('lost', () => {

@@ -3,23 +3,14 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
-interface LogInfo {
-  level: string;
-  message: string;
-  timestamp?: string;
-  requestId?: string;
-  service?: string;
-  [key: string]: unknown;
-}
-
 // 커스텀 로그 포맷 (개발 환경)
-const devFormat = printf((info: LogInfo) => {
+const devFormat = printf((info) => {
   const { level, message, timestamp, requestId, service, ...meta } = info;
   const requestIdStr = requestId ? `[${requestId}]` : '';
   const serviceStr = service ? `[${service}]` : '';
   const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
 
-  return `${timestamp} ${level} ${serviceStr}${requestIdStr}: ${message} ${metaStr}`;
+  return `${timestamp} ${level} ${serviceStr}${requestIdStr}: ${String(message)} ${metaStr}`;
 });
 
 // 프로덕션 로그 포맷 (JSON)
@@ -78,7 +69,7 @@ export const createLoggerConfig = (serviceName: string) => {
     format: combine(
       timestamp(),
       errors({ stack: true }),
-      winston.format((info: LogInfo) => {
+      winston.format((info) => {
         info['service'] = serviceName;
         return info;
       })()
