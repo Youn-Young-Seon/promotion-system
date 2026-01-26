@@ -21,7 +21,7 @@ export class ProductGrpcController {
 
   @GrpcMethod('TimeSaleService', 'GetProduct')
   async getProduct(data: { id: number }) {
-    const product = await this.productService.findOne(data.id);
+    const product = await this.productService.findById(data.id);
     return {
       id: Number(product.id),
       name: product.name,

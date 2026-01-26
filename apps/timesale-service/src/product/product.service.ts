@@ -16,7 +16,7 @@ export class ProductService {
       data: {
         name: dto.name,
         price: dto.price,
-        description: dto.description,
+        description: dto.description ?? '',
       },
     });
 

@@ -1,6 +1,19 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { OrderService } from './order.service';
+import { TimeSaleOrder } from '../../prisma/generated/client';
+
+type OrderWithRelations = TimeSaleOrder & {
+  timeSale?: {
+    id: bigint;
+    discountPrice: number;
+    product?: {
+      id: bigint;
+      name: string;
+      price: number;
+    } | null;
+  } | null;
+};
 
 @Controller()
 export class OrderGrpcController {
@@ -8,7 +21,7 @@ export class OrderGrpcController {
 
   @GrpcMethod('TimeSaleService', 'CreateOrder')
   async createOrder(data: { timeSaleId: number; userId: number; quantity: number }) {
-    const order = await this.orderService.create(data);
+    const order = await this.orderService.create(data) as OrderWithRelations;
     return {
       id: Number(order.id),
       timeSaleId: Number(order.timeSaleId),
@@ -36,7 +49,7 @@ export class OrderGrpcController {
 
   @GrpcMethod('TimeSaleService', 'GetOrder')
   async getOrder(data: { id: number }) {
-    const order = await this.orderService.findOne(data.id);
+    const order = await this.orderService.findById(data.id) as OrderWithRelations;
     return {
       id: Number(order.id),
       timeSaleId: Number(order.timeSaleId),

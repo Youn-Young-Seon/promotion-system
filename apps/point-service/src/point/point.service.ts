@@ -9,7 +9,6 @@ import { RedisService, KafkaService } from '@common/index';
 import { PrismaService } from '../prisma/prisma.service';
 import { EarnPointsDto, UsePointsDto, CancelPointsDto } from './dto';
 import { Point, PointType } from '../../prisma/generated/client';
-import { Prisma } from '../../prisma/generated/client';
 
 @Injectable()
 export class PointService {

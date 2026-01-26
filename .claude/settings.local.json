@@ -26,7 +26,17 @@
       "Bash(pnpm dev:gateway:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pnpm run dev:all:*)",
+      "Bash(dir:*)",
+      "Bash(cmd /c \"dir /B C:\\\\Users\\\\82104\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-82104-Documents-promotion-system\\\\tasks\\\\*.output\")",
+      "Bash(ls:*)",
+      "Bash(pnpm run build)",
+      "Bash(pkill:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(timeout 40 pnpm run:*)",
+      "Bash(pnpm run dev:timesale:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

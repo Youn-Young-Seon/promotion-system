@@ -1,7 +1,16 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { TimeSaleService } from './timesale.service';
-import { TimeSale } from '../../prisma/generated/client';
+import { TimeSale, TimeSaleStatus } from '../../prisma/generated/client';
+
+type TimeSaleWithProduct = TimeSale & {
+  product?: {
+    id: bigint;
+    name: string;
+    price: number;
+    description: string;
+  } | null;
+};
 
 @Controller()
 export class TimesaleGrpcController {
@@ -16,10 +25,12 @@ export class TimesaleGrpcController {
     endAt: string;
   }) {
     const timesale = await this.timesaleService.create({
-      ...data,
-      startAt: new Date(data.startAt),
-      endAt: new Date(data.endAt),
-    });
+      productId: data.productId,
+      quantity: data.quantity,
+      discountPrice: data.discountPrice,
+      startAt: data.startAt,
+      endAt: data.endAt,
+    }) as TimeSaleWithProduct;
     return {
       id: Number(timesale.id),
       productId: Number(timesale.productId),
@@ -44,7 +55,7 @@ export class TimesaleGrpcController {
 
   @GrpcMethod('TimeSaleService', 'GetTimeSale')
   async getTimeSale(data: { id: number }) {
-    const timesale = await this.timesaleService.findOne(data.id);
+    const timesale = await this.timesaleService.findById(data.id) as TimeSaleWithProduct;
     return {
       id: Number(timesale.id),
       productId: Number(timesale.productId),
@@ -69,13 +80,14 @@ export class TimesaleGrpcController {
 
   @GrpcMethod('TimeSaleService', 'ListTimeSales')
   async listTimeSales(data: { status?: string; page: number; size: number }) {
-    const { timesales, total } = await this.timesaleService.findAll(
-      data.status,
+    const statusEnum = data.status ? (data.status as TimeSaleStatus) : undefined;
+    const { timeSales, total } = await this.timesaleService.findAll(
       data.page,
       data.size,
+      statusEnum,
     );
     return {
-      timesales: timesales.map((timesale: TimeSale & { product?: { id: bigint; name: string; price: number; description: string | null } | null }) => ({
+      timesales: timeSales.map((timesale: TimeSale & { product?: { id: bigint; name: string; price: number; description: string | null } | null }) => ({
         id: Number(timesale.id),
         productId: Number(timesale.productId),
         quantity: timesale.quantity,

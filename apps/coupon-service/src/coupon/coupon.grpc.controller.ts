@@ -1,6 +1,16 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
 import { CouponService } from './coupon.service';
+import { Coupon } from '../../prisma/generated/client';
+
+type CouponWithPolicy = Coupon & {
+  couponPolicy?: {
+    id: bigint;
+    title: string;
+    discountType: string;
+    discountValue: number;
+  } | null;
+};
 
 @Controller()
 export class CouponGrpcController {
@@ -8,7 +18,7 @@ export class CouponGrpcController {
 
   @GrpcMethod('CouponService', 'IssueCoupon')
   async issueCoupon(data: { userId: number; couponPolicyId: number }) {
-    const coupon = await this.couponService.issueCoupon(data);
+    const coupon = await this.couponService.issueCoupon(data) as CouponWithPolicy;
     return {
       id: Number(coupon.id),
       userId: String(coupon.userId),
@@ -64,9 +74,9 @@ export class CouponGrpcController {
 
   @GrpcMethod('CouponService', 'GetUserCoupons')
   async getUserCoupons(data: { userId: number }) {
-    const coupons = await this.couponService.findUserCoupons(data.userId);
+    const coupons = await this.couponService.getUserCoupons(data.userId);
     return {
-      coupons: coupons.map((coupon) => ({
+      coupons: coupons.map((coupon: CouponWithPolicy) => ({
         id: Number(coupon.id),
         userId: String(coupon.userId),
         couponPolicyId: Number(coupon.couponPolicyId),

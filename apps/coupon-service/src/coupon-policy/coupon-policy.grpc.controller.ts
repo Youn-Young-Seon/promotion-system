@@ -29,7 +29,7 @@ export class CouponPolicyGrpcController {
 
   @GrpcMethod('CouponService', 'GetCouponPolicy')
   async getCouponPolicy(data: { id: number }) {
-    const policy = await this.couponPolicyService.findOne(data.id);
+    const policy = await this.couponPolicyService.findById(data.id);
     return {
       id: Number(policy.id),
       title: policy.title,

@@ -14,10 +14,10 @@ async function bootstrap(): Promise<void> {
   logger.setContext('Bootstrap');
   app.useLogger(logger);
 
-  const httpPort = process.env.SERVICE_PORT ?? 3003;
-  const grpcPort = process.env.GRPC_PORT ?? 50053;
-  const serviceName = process.env.SERVICE_NAME ?? 'timesale-service';
-  const serviceHost = process.env.SERVICE_HOST ?? 'localhost';
+  const httpPort = process.env['SERVICE_PORT'] ?? 3003;
+  const grpcPort = process.env['GRPC_PORT'] ?? 50053;
+  const serviceName = process.env['SERVICE_NAME'] ?? 'timesale-service';
+  const serviceHost = process.env['SERVICE_HOST'] ?? 'localhost';
 
   // Global Validation Pipe
   app.useGlobalPipes(
