@@ -29,14 +29,26 @@
       "Bash(curl:*)",
       "Bash(pnpm run dev:all:*)",
       "Bash(dir:*)",
-      "Bash(cmd /c \"dir /B C:\\\\Users\\\\82104\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-82104-Documents-promotion-system\\\\tasks\\\\*.output\")",
       "Bash(ls:*)",
       "Bash(pnpm run build)",
       "Bash(pkill:*)",
       "Bash(pnpm prisma generate:*)",
       "Bash(timeout 40 pnpm run:*)",
       "Bash(pnpm run dev:timesale:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(pnpm test:*)",
+      "Bash(timeout 10 bash:*)",
+      "Bash(test:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(xargs -I {} bash -c \"echo ''=== {} ==='' && cat {} | grep ''\"\"version\"\"'' | head -n 1\")",
+      "Bash(pnpm list:*)",
+      "Bash(grep:*)",
+      "Bash(if [ -f .env ])",
+      "Bash(then cat .env)",
+      "Bash(else echo \"No .env file found\")",
+      "Bash(fi)"
     ]
   }
 }

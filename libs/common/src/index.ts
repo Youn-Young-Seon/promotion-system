@@ -11,3 +11,5 @@ export * from './logger/logger.config';
 export * from './logger/request-id.middleware';
 export * from './logger/http-logger.interceptor';
 export * from './logger/global-exception.filter';
+export * from './tracing/tracing.module';
+export * from './tracing/tracing.service';

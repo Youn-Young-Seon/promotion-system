@@ -11,20 +11,23 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { CircuitBreakerService } from './common/circuit-breaker.service';
 import { DynamicGrpcClientService } from './common/dynamic-grpc-client.service';
-import { EtcdModule, LoggerModule, RequestIdMiddleware, HttpLoggerInterceptor } from '@common/index';
+import { EtcdModule, LoggerModule, RequestIdMiddleware, HttpLoggerInterceptor, TracingModule } from '@common/index';
 
 @Module({
   imports: [
     // 환경 변수 설정
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: ['.env', 'apps/api-gateway/.env'],
     }),
 
     // 로거 설정
     LoggerModule.forRoot({
       serviceName: 'api-gateway',
     }),
+
+    // 분산 추적
+    TracingModule,
 
     // Prometheus 모니터링
     PrometheusModule.register({

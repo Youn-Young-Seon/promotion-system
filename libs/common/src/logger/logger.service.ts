@@ -41,29 +41,39 @@ export class LoggerService implements NestLoggerService {
     return context;
   }
 
-  // 로그 메서드
-  log(message: string, meta?: Record<string, unknown>) {
-    this.logger.info(message, { ...this.getContext(), ...meta });
+  // 로그 메서드 (NestJS 인터페이스 호환)
+  log(message: unknown, context?: string) {
+    const ctx = context || this.context;
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    this.logger.info(msg, { ...this.getContext(), ...(ctx ? { context: ctx } : {}) });
   }
 
-  error(message: string, trace?: string, meta?: Record<string, unknown>) {
-    this.logger.error(message, {
+  error(message: unknown, trace?: string, context?: string) {
+    const ctx = context || this.context;
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    this.logger.error(msg, {
       ...this.getContext(),
-      stack: trace,
-      ...meta,
+      ...(ctx ? { context: ctx } : {}),
+      ...(trace ? { stack: trace } : {}),
     });
   }
 
-  warn(message: string, meta?: Record<string, unknown>) {
-    this.logger.warn(message, { ...this.getContext(), ...meta });
+  warn(message: unknown, context?: string) {
+    const ctx = context || this.context;
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    this.logger.warn(msg, { ...this.getContext(), ...(ctx ? { context: ctx } : {}) });
   }
 
-  debug(message: string, meta?: Record<string, unknown>) {
-    this.logger.debug(message, { ...this.getContext(), ...meta });
+  debug(message: unknown, context?: string) {
+    const ctx = context || this.context;
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    this.logger.debug(msg, { ...this.getContext(), ...(ctx ? { context: ctx } : {}) });
   }
 
-  verbose(message: string, meta?: Record<string, unknown>) {
-    this.logger.verbose(message, { ...this.getContext(), ...meta });
+  verbose(message: unknown, context?: string) {
+    const ctx = context || this.context;
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    this.logger.verbose(msg, { ...this.getContext(), ...(ctx ? { context: ctx } : {}) });
   }
 
   // HTTP 요청 로깅

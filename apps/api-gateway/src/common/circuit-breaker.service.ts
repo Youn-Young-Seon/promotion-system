@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import CircuitBreaker from 'opossum';
 
-interface BreakerStats {
+export interface BreakerStats {
   name: string;
   state: 'OPEN' | 'HALF-OPEN' | 'CLOSED';
   stats: CircuitBreaker.Stats;

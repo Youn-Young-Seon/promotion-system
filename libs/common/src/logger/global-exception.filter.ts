@@ -49,12 +49,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     // 5xx 에러는 error 레벨, 4xx는 warn 레벨로 로깅
     if (status >= 500) {
       this.logger.error(
-        `Internal Server Error: ${message}`,
+        `Internal Server Error: ${message} ${JSON.stringify(errorLog)}`,
         exception instanceof Error ? exception.stack : undefined,
-        errorLog,
       );
     } else {
-      this.logger.warn(`Client Error: ${message}`, errorLog);
+      this.logger.warn(`Client Error: ${message} ${JSON.stringify(errorLog)}`);
     }
 
     // 민감한 정보 필터링 (프로덕션 환경)
