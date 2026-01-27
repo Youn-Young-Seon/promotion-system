@@ -48,7 +48,10 @@
       "Bash(if [ -f .env ])",
       "Bash(then cat .env)",
       "Bash(else echo \"No .env file found\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(docker ps:*)",
+      "Bash(powershell.exe -Command \"Get-Content ''C:\\\\Users\\\\Yun\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Yun-Documents-promotion-system\\\\tasks\\\\b598c72.output'' -Tail 150 | Select-String -Pattern ''data:|Invalid|title:|totalQuantity:'' -Context 2,2\")",
+      "Bash(powershell \"Stop-Process -Id 3644,24688,47460,48248 -Force\")"
     ]
   }
 }

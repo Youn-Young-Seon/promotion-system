@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Etcd3 } from 'etcd3';
+import { Etcd3, Lease } from 'etcd3';
 
 export interface ServiceInstance {
   host: string;
@@ -12,7 +12,7 @@ export interface ServiceInstance {
 export class EtcdService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EtcdService.name);
   private client!: Etcd3;
-  private leaseId: string | null = null;
+  private leases: Map<string, Lease> = new Map();
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -29,9 +29,15 @@ export class EtcdService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.leaseId) {
-      await this.client.lease(parseInt(this.leaseId, 10)).revoke();
+    for (const [serviceName, lease] of this.leases.entries()) {
+      try {
+        await lease.revoke();
+        this.logger.log(`Revoked lease for service: ${serviceName}`);
+      } catch (error) {
+        this.logger.error(`Failed to revoke lease for service: ${serviceName}`, error);
+      }
     }
+    this.leases.clear();
     this.logger.log('etcd client closed');
   }
 
@@ -41,19 +47,32 @@ export class EtcdService implements OnModuleInit, OnModuleDestroy {
     ttl = 10,
   ): Promise<void> {
     try {
+      // 이전 lease가 있다면 revoke
+      const existingLease = this.leases.get(serviceName);
+      if (existingLease) {
+        try {
+          await existingLease.revoke();
+        } catch (error) {
+          this.logger.warn(`Failed to revoke existing lease for ${serviceName}`, error);
+        }
+      }
+
       const lease = this.client.lease(ttl);
-      this.leaseId = await lease.grant();
+      const leaseId = await lease.grant();
 
       const key = `/services/${serviceName}/${instance.host}:${instance.port}`;
       const value = JSON.stringify(instance);
 
-      if (this.leaseId) {
-        await this.client.put(key).value(value).lease(this.leaseId).exec();
-      }
+      await this.client.put(key).value(value).lease(leaseId).exec();
 
-      // Keep-alive for the lease
+      // Store lease object
+      this.leases.set(serviceName, lease);
+
+      // Keep-alive for the lease - automatically renew
+      // etcd3 automatically keeps the lease alive after grant()
       lease.on('lost', () => {
         this.logger.warn(`Lease lost for service ${serviceName}, re-registering...`);
+        this.leases.delete(serviceName);
         void this.registerService(serviceName, instance, ttl);
       });
 

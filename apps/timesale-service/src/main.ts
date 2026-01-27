@@ -42,7 +42,7 @@ async function bootstrap(): Promise<void> {
       protoPath: join(__dirname, '../../../proto/timesale.proto'),
       url: `0.0.0.0:${grpcPort}`,
       loader: {
-        keepCase: true,
+        keepCase: false, // NestJS best practice: proto uses snake_case, TypeScript uses camelCase
         longs: String,
         enums: String,
         defaults: true,

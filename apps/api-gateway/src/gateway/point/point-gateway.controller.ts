@@ -6,7 +6,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
@@ -36,6 +36,7 @@ interface PointService {
 }
 
 @ApiTags('Point')
+@ApiBearerAuth('access-token')
 @Controller('points')
 export class PointController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}

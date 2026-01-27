@@ -6,7 +6,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
@@ -43,6 +43,7 @@ interface CouponService {
 }
 
 @ApiTags('Coupon')
+@ApiBearerAuth('access-token')
 @Controller('coupon-policies')
 export class CouponPolicyController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
@@ -90,6 +91,7 @@ export class CouponPolicyController {
 }
 
 @ApiTags('Coupon')
+@ApiBearerAuth('access-token')
 @Controller('coupons')
 export class CouponController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}

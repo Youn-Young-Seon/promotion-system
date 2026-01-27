@@ -6,7 +6,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
@@ -42,6 +42,7 @@ interface TimeSaleService {
 }
 
 @ApiTags('TimeSale')
+@ApiBearerAuth('access-token')
 @Controller('products')
 export class ProductController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
@@ -72,6 +73,7 @@ export class ProductController {
 }
 
 @ApiTags('TimeSale')
+@ApiBearerAuth('access-token')
 @Controller('time-sales')
 export class TimeSaleController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}
@@ -125,6 +127,7 @@ export class TimeSaleController {
 }
 
 @ApiTags('TimeSale')
+@ApiBearerAuth('access-token')
 @Controller('orders')
 export class OrderController {
   constructor(private readonly dynamicGrpcClient: DynamicGrpcClientService) {}

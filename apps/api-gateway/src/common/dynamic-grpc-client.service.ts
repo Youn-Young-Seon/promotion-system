@@ -47,7 +47,8 @@ export class DynamicGrpcClientService implements OnModuleInit {
 
     // 서비스 이름에서 패키지명 추출 (예: coupon-service -> coupon)
     const packageName = serviceName.replace('-service', '');
-    const protoPath = join(__dirname, `../../../../proto/${packageName}.proto`);
+    // 프로젝트 루트의 proto 디렉토리 사용
+    const protoPath = join(process.cwd(), 'proto', `${packageName}.proto`);
 
     try {
       const client = ClientProxyFactory.create({
@@ -57,7 +58,7 @@ export class DynamicGrpcClientService implements OnModuleInit {
           protoPath,
           url,
           loader: {
-            keepCase: true,
+            keepCase: false, // NestJS best practice: proto uses snake_case, TypeScript uses camelCase
             longs: String,
             enums: String,
             defaults: true,
