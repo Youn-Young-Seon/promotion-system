@@ -51,7 +51,20 @@
       "Bash(fi)",
       "Bash(docker ps:*)",
       "Bash(powershell.exe -Command \"Get-Content ''C:\\\\Users\\\\Yun\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Yun-Documents-promotion-system\\\\tasks\\\\b598c72.output'' -Tail 150 | Select-String -Pattern ''data:|Invalid|title:|totalQuantity:'' -Context 2,2\")",
-      "Bash(powershell \"Stop-Process -Id 3644,24688,47460,48248 -Force\")"
+      "Bash(powershell \"Stop-Process -Id 3644,24688,47460,48248 -Force\")",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidGVzdHVzZXJAZXhhbXBsZS5jb20iLCJuYW1lIjoiVGVzdCBVc2VyIiwiaWF0IjoxNzY5NTY1OTQ3LCJleHAiOjE3Njk1Njk1NDd9.isn209oRxG2LeGDDleWkZkJyslBUsS6V7-Th8y_LJas\":*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoibmV3dXNlckB0ZXN0LmNvbSIsIm5hbWUiOiJOZXcgVXNlciIsImlhdCI6MTc2OTU2NzI1NywiZXhwIjoxNzY5NTcwODU3fQ.pyxWqTLEumjzuIyRAofoHOqYvklGwrqoJ7hYSYeq1KY\")",
+      "Bash(docker exec:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoidGVzdHVzZXIyQGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciAyIiwiaWF0IjoxNzY5NTcwMzQ1LCJleHAiOjE3Njk1NzM5NDV9.eTNVY7LjS4JjeXojISIYuu3UjL3DYF-oyEnS_sTEvvM\")",
+      "Bash(git checkout:*)",
+      "Bash(pnpm:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(tee:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJpYXQiOjE3Njk1ODQ4MjQsImV4cCI6MTc2OTU4ODQyNH0.XAntUj0XYLPS3Q7-uKnjIyxAyIJ5Q11mbOZXRPkkoGY\")",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(echo:*)"
     ]
   }
 }

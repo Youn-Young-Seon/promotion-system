@@ -10,25 +10,28 @@ export class ProductGrpcController {
   async createProduct(data: { name: string; price: number; description?: string }) {
     const product = await this.productService.create(data);
     return {
-      id: Number(product.id),
-      name: product.name,
-      price: product.price,
-      description: product.description || '',
-      createdAt: product.createdAt.toISOString(),
-      updatedAt: product.updatedAt.toISOString(),
+      product: {
+        id: String(product.id),
+        name: product.name,
+        price: product.price,
+        description: product.description || '',
+        createdAt: product.createdAt.toISOString(),
+      },
     };
   }
 
   @GrpcMethod('TimeSaleService', 'GetProduct')
-  async getProduct(data: { id: number }) {
-    const product = await this.productService.findById(data.id);
+  async getProduct(data: { id: string | number }) {
+    const productId = typeof data.id === 'string' ? parseInt(data.id, 10) : data.id;
+    const product = await this.productService.findById(productId);
     return {
-      id: Number(product.id),
-      name: product.name,
-      price: product.price,
-      description: product.description || '',
-      createdAt: product.createdAt.toISOString(),
-      updatedAt: product.updatedAt.toISOString(),
+      product: {
+        id: String(product.id),
+        name: product.name,
+        price: product.price,
+        description: product.description || '',
+        createdAt: product.createdAt.toISOString(),
+      },
     };
   }
 }

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { LoggerService } from '@common/index';
+import { GrpcExceptionFilter } from './common/grpc-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -35,6 +36,9 @@ async function bootstrap() {
       },
     }),
   );
+
+  // Global Exception Filter (gRPC 에러를 HTTP 에러로 변환)
+  app.useGlobalFilters(new GrpcExceptionFilter());
 
   // API 접두사 설정
   app.setGlobalPrefix('api/v1');

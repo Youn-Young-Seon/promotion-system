@@ -18,22 +18,24 @@ export class TimesaleGrpcController {
 
   @GrpcMethod('TimeSaleService', 'CreateTimeSale')
   async createTimeSale(data: {
-    productId: number;
+    productId: string | number;
     quantity: number;
     discountPrice: number;
     startAt: string;
     endAt: string;
   }) {
+    const productId = typeof data.productId === 'string' ? parseInt(data.productId, 10) : data.productId;
     const timesale = await this.timesaleService.create({
-      productId: data.productId,
+      productId,
       quantity: data.quantity,
       discountPrice: data.discountPrice,
       startAt: data.startAt,
       endAt: data.endAt,
     }) as TimeSaleWithProduct;
-    return {
-      id: Number(timesale.id),
-      productId: Number(timesale.productId),
+
+    const timesaleResponse: Record<string, unknown> = {
+      id: String(timesale.id),
+      productId: String(timesale.productId),
       quantity: timesale.quantity,
       remainingQuantity: timesale.remainingQuantity,
       discountPrice: timesale.discountPrice,
@@ -41,24 +43,28 @@ export class TimesaleGrpcController {
       endAt: timesale.endAt.toISOString(),
       status: timesale.status,
       createdAt: timesale.createdAt.toISOString(),
-      updatedAt: timesale.updatedAt.toISOString(),
-      product: timesale.product
-        ? {
-            id: Number(timesale.product.id),
-            name: timesale.product.name,
-            price: timesale.product.price,
-            description: timesale.product.description || '',
-          }
-        : undefined,
     };
+
+    if (timesale.product) {
+      timesaleResponse['product'] = {
+        id: String(timesale.product.id),
+        name: timesale.product.name,
+        price: timesale.product.price,
+        description: timesale.product.description || '',
+      };
+    }
+
+    return { timesale: timesaleResponse };
   }
 
   @GrpcMethod('TimeSaleService', 'GetTimeSale')
-  async getTimeSale(data: { id: number }) {
-    const timesale = await this.timesaleService.findById(data.id) as TimeSaleWithProduct;
-    return {
-      id: Number(timesale.id),
-      productId: Number(timesale.productId),
+  async getTimeSale(data: { id: string | number }) {
+    const timesaleId = typeof data.id === 'string' ? parseInt(data.id, 10) : data.id;
+    const timesale = await this.timesaleService.findById(timesaleId) as TimeSaleWithProduct;
+
+    const timesaleResponse: Record<string, unknown> = {
+      id: String(timesale.id),
+      productId: String(timesale.productId),
       quantity: timesale.quantity,
       remainingQuantity: timesale.remainingQuantity,
       discountPrice: timesale.discountPrice,
@@ -66,16 +72,18 @@ export class TimesaleGrpcController {
       endAt: timesale.endAt.toISOString(),
       status: timesale.status,
       createdAt: timesale.createdAt.toISOString(),
-      updatedAt: timesale.updatedAt.toISOString(),
-      product: timesale.product
-        ? {
-            id: Number(timesale.product.id),
-            name: timesale.product.name,
-            price: timesale.product.price,
-            description: timesale.product.description || '',
-          }
-        : undefined,
     };
+
+    if (timesale.product) {
+      timesaleResponse['product'] = {
+        id: String(timesale.product.id),
+        name: timesale.product.name,
+        price: timesale.product.price,
+        description: timesale.product.description || '',
+      };
+    }
+
+    return { timesale: timesaleResponse };
   }
 
   @GrpcMethod('TimeSaleService', 'ListTimeSales')
@@ -87,26 +95,30 @@ export class TimesaleGrpcController {
       statusEnum,
     );
     return {
-      timesales: timeSales.map((timesale: TimeSale & { product?: { id: bigint; name: string; price: number; description: string | null } | null }) => ({
-        id: Number(timesale.id),
-        productId: Number(timesale.productId),
-        quantity: timesale.quantity,
-        remainingQuantity: timesale.remainingQuantity,
-        discountPrice: timesale.discountPrice,
-        startAt: timesale.startAt.toISOString(),
-        endAt: timesale.endAt.toISOString(),
-        status: timesale.status,
-        createdAt: timesale.createdAt.toISOString(),
-        updatedAt: timesale.updatedAt.toISOString(),
-        product: timesale.product
-          ? {
-              id: Number(timesale.product.id),
-              name: timesale.product.name,
-              price: timesale.product.price,
-              description: timesale.product.description || '',
-            }
-          : undefined,
-      })),
+      timesales: timeSales.map((timesale: TimeSale & { product?: { id: bigint; name: string; price: number; description: string | null } | null }) => {
+        const timesaleResponse: Record<string, unknown> = {
+          id: String(timesale.id),
+          productId: String(timesale.productId),
+          quantity: timesale.quantity,
+          remainingQuantity: timesale.remainingQuantity,
+          discountPrice: timesale.discountPrice,
+          startAt: timesale.startAt.toISOString(),
+          endAt: timesale.endAt.toISOString(),
+          status: timesale.status,
+          createdAt: timesale.createdAt.toISOString(),
+        };
+
+        if (timesale.product) {
+          timesaleResponse['product'] = {
+            id: String(timesale.product.id),
+            name: timesale.product.name,
+            price: timesale.product.price,
+            description: timesale.product.description || '',
+          };
+        }
+
+        return timesaleResponse;
+      }),
       total,
       page: data.page,
       size: data.size,

@@ -20,58 +20,37 @@ export class OrderGrpcController {
   constructor(private readonly orderService: OrderService) {}
 
   @GrpcMethod('TimeSaleService', 'CreateOrder')
-  async createOrder(data: { timeSaleId: number; userId: number; quantity: number }) {
-    const order = await this.orderService.create(data) as OrderWithRelations;
+  async createOrder(data: { timeSaleId: string | number; userId: string | number; quantity: number }) {
+    const timeSaleId = typeof data.timeSaleId === 'string' ? parseInt(data.timeSaleId, 10) : data.timeSaleId;
+    const userId = typeof data.userId === 'string' ? parseInt(data.userId, 10) : data.userId;
+    const order = await this.orderService.create({ timeSaleId, userId, quantity: data.quantity }) as OrderWithRelations;
     return {
-      id: Number(order.id),
-      timeSaleId: Number(order.timeSaleId),
-      userId: String(order.userId),
-      quantity: order.quantity,
-      status: order.status,
-      queueNumber: order.queueNumber,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
-      timeSale: order.timeSale
-        ? {
-            id: Number(order.timeSale.id),
-            discountPrice: order.timeSale.discountPrice,
-            product: order.timeSale.product
-              ? {
-                  id: Number(order.timeSale.product.id),
-                  name: order.timeSale.product.name,
-                  price: order.timeSale.product.price,
-                }
-              : undefined,
-          }
-        : undefined,
+      order: {
+        id: String(order.id),
+        timeSaleId: String(order.timeSaleId),
+        userId: String(order.userId),
+        quantity: order.quantity,
+        status: order.status,
+        queueNumber: order.queueNumber,
+        createdAt: order.createdAt.toISOString(),
+      },
     };
   }
 
   @GrpcMethod('TimeSaleService', 'GetOrder')
-  async getOrder(data: { id: number }) {
-    const order = await this.orderService.findById(data.id) as OrderWithRelations;
+  async getOrder(data: { id: string | number }) {
+    const orderId = typeof data.id === 'string' ? parseInt(data.id, 10) : data.id;
+    const order = await this.orderService.findById(orderId) as OrderWithRelations;
     return {
-      id: Number(order.id),
-      timeSaleId: Number(order.timeSaleId),
-      userId: String(order.userId),
-      quantity: order.quantity,
-      status: order.status,
-      queueNumber: order.queueNumber,
-      createdAt: order.createdAt.toISOString(),
-      updatedAt: order.updatedAt.toISOString(),
-      timeSale: order.timeSale
-        ? {
-            id: Number(order.timeSale.id),
-            discountPrice: order.timeSale.discountPrice,
-            product: order.timeSale.product
-              ? {
-                  id: Number(order.timeSale.product.id),
-                  name: order.timeSale.product.name,
-                  price: order.timeSale.product.price,
-                }
-              : undefined,
-          }
-        : undefined,
+      order: {
+        id: String(order.id),
+        timeSaleId: String(order.timeSaleId),
+        userId: String(order.userId),
+        quantity: order.quantity,
+        status: order.status,
+        queueNumber: order.queueNumber,
+        createdAt: order.createdAt.toISOString(),
+      },
     };
   }
 }

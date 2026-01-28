@@ -339,7 +339,16 @@ When modifying database schemas:
 
 ### Adding a New Endpoint
 1. Define proto message and RPC in `proto/<service>.proto`
-2. Regenerate gRPC code: `cd apps/<service> && pnpm exec grpc_tools_node_protoc ...`
+2. Regenerate gRPC TypeScript code:
+   ```bash
+   # Example for coupon service (adjust package name and paths accordingly)
+   pnpm exec grpc_tools_node_protoc \
+     --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto \
+     --ts_proto_out=apps/coupon-service/src/generated \
+     --ts_proto_opt=nestJs=true \
+     --proto_path=./proto \
+     proto/coupon.proto
+   ```
 3. Implement gRPC handler in service controller
 4. Add REST endpoint in API Gateway controller
 5. Update Swagger annotations (`@ApiOperation`, `@ApiResponse`)
@@ -368,6 +377,12 @@ When modifying database schemas:
 - **Dependency Injection**: Use constructor injection exclusively
 - **DTO Validation**: Use `class-validator` decorators on all DTOs
 - **Error Handling**: Throw NestJS HTTP exceptions (`BadRequestException`, etc.)
+
+### Proto File Conventions
+- **Package naming**: Proto package names match service names without `-service` suffix (e.g., `coupon-service` → `package coupon`)
+- **Proto location**: All `.proto` files in `proto/` directory at project root
+- **Message naming**: Use PascalCase for message types
+- **Field naming**: Use snake_case in proto files (auto-converted to camelCase by gRPC loader with `keepCase: false`)
 
 ## Docker Infrastructure
 
@@ -437,9 +452,51 @@ docker exec -it redis redis-cli ping
 docker exec -it redis redis-cli FLUSHALL
 ```
 
+### "Process Won't Stop" (Windows)
+```bash
+# Kill all Node.js processes
+pnpm kill:all
+
+# Or manually kill specific port
+netstat -ano | findstr :<port>
+taskkill /F /PID <process-id>
+```
+
+### gRPC Connection Issues
+- Verify service is registered in etcd: check logs for "Service registered: <service-name>"
+- Check etcd is running: `docker-compose ps etcd`
+- Verify proto files match between services (same message definitions)
+- API Gateway uses dynamic discovery; it may take a few seconds to connect after services start
+
 ## Performance Targets
 
 - **Throughput**: 1,000+ requests/second (validated via k6)
 - **Response Time**: P95 < 200ms
 - **Availability**: Circuit breakers prevent cascading failures
 - **Data Consistency**: Distributed locks guarantee no overselling
+
+## Known Issues & Important Notes
+
+### TypeScript Build Warnings
+The project has strict TypeScript mode enabled. Some current type issues to be aware of:
+- `opossum` package may need `@types/opossum` for full type safety
+- gRPC client responses use `unknown` types and require runtime type assertions
+- Always verify types when working with gRPC message transformations
+
+### Platform-Specific Commands
+- `pnpm kill:all` uses `taskkill` (Windows-specific)
+- Performance tests use `--network=host` flag (works on Windows Docker Desktop and Linux; may need adjustment on macOS)
+- Prometheus config uses `host.docker.internal` (Windows/Mac Docker Desktop convention)
+
+### Service Startup Order
+Services can start in any order due to etcd service discovery, but for best results:
+1. Start infrastructure: `docker-compose up -d`
+2. Wait ~5 seconds for PostgreSQL/Redis/etcd to be ready
+3. Run migrations if first time: `pnpm prisma:migrate`
+4. Start all services: `pnpm dev:all`
+
+### gRPC Client Behavior
+- gRPC clients use **lazy connection** (don't call `.connect()` manually)
+- First request to a service may be slower as connection establishes
+- Circuit breakers protect against downstream failures; requests fail fast after threshold
+- Service discovery updates happen automatically via etcd watch

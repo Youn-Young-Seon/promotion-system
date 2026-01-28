@@ -20,9 +20,9 @@ interface CreateProductRequest {
 interface CreateTimeSaleRequest {
   productId: number;
   quantity: number;
-  salePrice: number;
-  startTime: string;
-  endTime: string;
+  discountPrice: number;
+  startAt: string;
+  endAt: string;
 }
 
 interface CreateOrderRequest {
