@@ -10,27 +10,14 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth }
 import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
-
-interface EarnPointsRequest {
-  userId: number;
-  amount: number;
-  description: string;
-}
-
-interface UsePointsRequest {
-  userId: number;
-  amount: number;
-  description: string;
-}
-
-interface CancelPointsRequest {
-  pointId: number;
-}
+import { EarnPointsDto } from './dto/earn-points.dto';
+import { UsePointsDto } from './dto/use-points.dto';
+import { CancelPointsDto } from './dto/cancel-points.dto';
 
 interface PointService {
-  earnPoints(data: EarnPointsRequest): Observable<unknown>;
-  usePoints(data: UsePointsRequest): Observable<unknown>;
-  cancelPoints(data: CancelPointsRequest): Observable<unknown>;
+  earnPoints(data: unknown): Observable<unknown>;
+  usePoints(data: unknown): Observable<unknown>;
+  cancelPoints(data: unknown): Observable<unknown>;
   getBalance(data: { userId: number }): Observable<unknown>;
   getHistory(data: { userId: number; page: number; size: number }): Observable<unknown>;
 }
@@ -50,24 +37,41 @@ export class PointController {
   @ApiOperation({ summary: '적립금 적립', description: '사용자에게 적립금을 적립합니다.' })
   @ApiResponse({ status: 201, description: '적립금이 성공적으로 적립되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async earnPoints(@Body() dto: EarnPointsRequest) {
-    return await firstValueFrom(this.getPointService().earnPoints(dto));
+  async earnPoints(@Body() dto: EarnPointsDto) {
+    // NestJS gRPC uses camelCase
+    const grpcRequest = {
+      userId: dto.userId,
+      amount: dto.amount,
+      description: dto.description,
+    };
+    return await firstValueFrom(this.getPointService().earnPoints(grpcRequest));
   }
 
   @Post('use')
   @ApiOperation({ summary: '적립금 사용', description: '사용자의 적립금을 사용합니다.' })
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 사용되었습니다.' })
   @ApiResponse({ status: 400, description: '잔액이 부족하거나 잘못된 요청입니다.' })
-  async usePoints(@Body() dto: UsePointsRequest) {
-    return await firstValueFrom(this.getPointService().usePoints(dto));
+  async usePoints(@Body() dto: UsePointsDto) {
+    // NestJS gRPC uses camelCase
+    const grpcRequest = {
+      userId: dto.userId,
+      amount: dto.amount,
+      description: dto.description,
+    };
+    return await firstValueFrom(this.getPointService().usePoints(grpcRequest));
   }
 
   @Post('cancel')
   @ApiOperation({ summary: '적립금 취소', description: '사용된 적립금을 취소합니다.' })
   @ApiResponse({ status: 200, description: '적립금이 성공적으로 취소되었습니다.' })
   @ApiResponse({ status: 400, description: '취소할 수 없는 거래입니다.' })
-  async cancelPoints(@Body() dto: CancelPointsRequest) {
-    return await firstValueFrom(this.getPointService().cancelPoints(dto));
+  async cancelPoints(@Body() dto: CancelPointsDto) {
+    // NestJS gRPC uses camelCase
+    const grpcRequest = {
+      transactionId: dto.transactionId,
+      description: dto.description,
+    };
+    return await firstValueFrom(this.getPointService().cancelPoints(grpcRequest));
   }
 
   @Get('users/:userId/balance')

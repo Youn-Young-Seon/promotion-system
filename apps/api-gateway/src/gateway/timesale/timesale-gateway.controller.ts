@@ -10,34 +10,17 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth }
 import { Observable } from 'rxjs';
 import { firstValueFrom } from 'rxjs';
 import { DynamicGrpcClientService } from '../../common/dynamic-grpc-client.service';
-
-interface CreateProductRequest {
-  name: string;
-  price: number;
-  description?: string;
-}
-
-interface CreateTimeSaleRequest {
-  productId: number;
-  quantity: number;
-  discountPrice: number;
-  startAt: string;
-  endAt: string;
-}
-
-interface CreateOrderRequest {
-  timeSaleId: number;
-  userId: number;
-  quantity: number;
-}
+import { CreateProductDto } from './dto/create-product.dto';
+import { CreateTimeSaleDto } from './dto/create-timesale.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 interface TimeSaleService {
-  createProduct(data: CreateProductRequest): Observable<unknown>;
+  createProduct(data: unknown): Observable<unknown>;
   getProduct(data: { id: number }): Observable<unknown>;
-  createTimeSale(data: CreateTimeSaleRequest): Observable<unknown>;
+  createTimeSale(data: unknown): Observable<unknown>;
   getTimeSale(data: { id: number }): Observable<unknown>;
   listTimeSales(data: { status?: string; page: number; size: number }): Observable<unknown>;
-  createOrder(data: CreateOrderRequest): Observable<unknown>;
+  createOrder(data: unknown): Observable<unknown>;
   getOrder(data: { id: number }): Observable<unknown>;
 }
 
@@ -56,7 +39,8 @@ export class ProductController {
   @ApiOperation({ summary: '상품 등록', description: '새로운 상품을 등록합니다.' })
   @ApiResponse({ status: 201, description: '상품이 성공적으로 등록되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async createProduct(@Body() dto: CreateProductRequest) {
+  async createProduct(@Body() dto: CreateProductDto) {
+    // NestJS gRPC uses camelCase
     return await firstValueFrom(this.getTimeSaleService().createProduct(dto));
   }
 
@@ -87,8 +71,16 @@ export class TimeSaleController {
   @ApiOperation({ summary: '타임세일 생성', description: '새로운 타임세일을 생성합니다.' })
   @ApiResponse({ status: 201, description: '타임세일이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청 데이터입니다.' })
-  async createTimeSale(@Body() dto: CreateTimeSaleRequest) {
-    return await firstValueFrom(this.getTimeSaleService().createTimeSale(dto));
+  async createTimeSale(@Body() dto: CreateTimeSaleDto) {
+    // NestJS gRPC uses camelCase
+    const grpcRequest = {
+      productId: dto.productId,
+      quantity: dto.quantity,
+      discountPrice: dto.discountPrice,
+      startAt: dto.startAt,
+      endAt: dto.endAt,
+    };
+    return await firstValueFrom(this.getTimeSaleService().createTimeSale(grpcRequest));
   }
 
   @Get(':id')
@@ -141,8 +133,14 @@ export class OrderController {
   @ApiOperation({ summary: '주문 생성', description: '타임세일 상품을 주문합니다.' })
   @ApiResponse({ status: 201, description: '주문이 성공적으로 생성되었습니다.' })
   @ApiResponse({ status: 400, description: '재고가 부족하거나 잘못된 요청입니다.' })
-  async createOrder(@Body() dto: CreateOrderRequest) {
-    return await firstValueFrom(this.getTimeSaleService().createOrder(dto));
+  async createOrder(@Body() dto: CreateOrderDto) {
+    // NestJS gRPC uses camelCase
+    const grpcRequest = {
+      timeSaleId: dto.timeSaleId,
+      userId: dto.userId,
+      quantity: dto.quantity,
+    };
+    return await firstValueFrom(this.getTimeSaleService().createOrder(grpcRequest));
   }
 
   @Get(':id')
